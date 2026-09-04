@@ -24,7 +24,7 @@ export default defineNuxtConfig({
       ]
     }
   },
-  modules: ['@nuxtjs/tailwindcss'],
+  modules: ['@nuxtjs/tailwindcss', '@nuxt/image'],
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
     directusUrl: directusUrlServer,

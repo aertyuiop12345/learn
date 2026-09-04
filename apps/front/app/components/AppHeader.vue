@@ -1,6 +1,6 @@
 <template>
   <header class="border-b border-rule bg-paper">
-    <div class="mx-auto flex max-w-container items-center px-gutter-mobile md:px-gutter py-3">
+    <div class="mx-auto flex items-center px-gutter-mobile md:px-gutter py-3 text-sm">
       <NuxtLink to="/" aria-label="LEARN UP ACADEMY — Accueil" class="inline-block">
         <Logo />
       </NuxtLink>
@@ -29,7 +29,7 @@
           aria-controls="mobile-menu"
           :aria-expanded="isOpen"
           aria-label="Ouvrir le menu"
-          class="flex h-touch w-touch items-center justify-center rounded-md border border-rule text-ink md:hidden"
+          class="flex h-touch w-touch items-center justify-center rounded-md text-ink md:hidden bg-surface"
           @click="openMenu"
         >
           <svg
