@@ -6,7 +6,7 @@
           <NuxtLink to="/" aria-label="LEARN UP ACADEMY — Accueil" class="inline-block">
             <LogoWhite />
           </NuxtLink>
-          <p class="mt-md md:max-w-72 text-small md:text-[13.5px]">
+          <p class="mt-md md:max-w-72 text-small md:text-[13.5px] text-ink-inverse-muted">
             La plateforme B2B qui comprend, localise et orchestre la formation professionnelle
             réglementaire.
           </p>
@@ -122,7 +122,7 @@
       </div>
 
       <div
-        class="mt-2xl flex flex-wrap items-center gap-x-lg gap-y-sm border-t border-outline-inverse pt-lg text-small"
+        class="mt-2xl flex flex-wrap items-center gap-x-lg gap-y-sm border-t border-outline-inverse pt-lg text-small text-ink-inverse-muted"
       >
         <p class="text-small md:text-[13.5px]">© {{ year }} LEARN UP ACADEMY</p>
         <NuxtLink

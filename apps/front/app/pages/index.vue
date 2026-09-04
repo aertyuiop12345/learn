@@ -292,7 +292,7 @@
     <!-- Stats -->
     <section class="border-b border-rule bg-surface">
       <div
-        class="mx-auto grid grid-cols-2 gap-xl px-gutter-mobile md:px-gutter py-section md:grid-cols-4"
+        class="mx-auto grid grid-cols-2 gap-y-xl gap-x-0 px-gutter-mobile md:px-gutter py-section md:grid-cols-4 md:gap-xl"
       >
         <StatItem
           v-for="stat in stats"
@@ -300,7 +300,7 @@
           :value="stat.value"
           :unit="stat.unit"
           :label="stat.label"
-          class="border-b border-rule md:border-b-0 md:border-r last:border-r-0 md:last:border-r-0"
+          class="border-r border-rule even:border-r-0 md:even:border-r last:!border-r-0 odd:pr-md even:pl-md md:px-0"
         />
       </div>
     </section>
@@ -308,16 +308,18 @@
     <!-- Testimonials -->
     <section class="mx-auto px-gutter-mobile md:px-gutter py-section">
       <div class="flex flex-wrap items-end justify-between gap-sm">
-        <h2 class="font-display text-h2 font-extrabold text-ink">
+        <h2 class="font-display text-[22px] font-extrabold text-ink">
           Ce qu'en disent les entreprises
-          <span class="ml-sm text-small font-medium text-ink-muted">4,7/5 · 312 avis Google</span>
+          <span class="md:ml-sm text-small font-medium text-ink-muted"
+            >4,7/5 · 312 avis Google</span
+          >
         </h2>
-        <NuxtLink to="/" class="text-small font-bold text-primary hover:text-ink"
+        <NuxtLink to="/" class="hidden md:block text-[13.5px] font-bold text-primary hover:text-ink"
           >Voir tous les avis →</NuxtLink
         >
       </div>
 
-      <div class="mt-2xl grid gap-grid md:grid-cols-3">
+      <div class="mt-lg grid gap-grid md:grid-cols-3">
         <TestimonialCard
           v-for="t in testimonials"
           :key="t.author"
@@ -325,6 +327,12 @@
           :quote="t.quote"
           :author="t.author"
         />
+      </div>
+
+      <div class="flex justify-center mt-lg">
+        <NuxtLink to="/" class="md:hidden text-[13.5px] font-bold text-primary hover:text-ink"
+          >Voir tous les avis →</NuxtLink
+        >
       </div>
     </section>
 
@@ -334,8 +342,8 @@
         <div class="flex items-end justify-between">
           <h2 class="font-display text-h2 font-extrabold text-ink">Actualités</h2>
           <NuxtLink
-            to="/"
-            class="whitespace-nowrap text-small font-bold text-primary hover:text-ink"
+            to="/blog"
+            class="hidden md:block whitespace-nowrap font-bold text-primary hover:text-ink text-[13.5px]"
             >Tout le blog →</NuxtLink
           >
         </div>
@@ -348,6 +356,15 @@
             :title="article.title"
             :date="article.date"
           />
+        </div>
+
+        <div class="flex justify-center">
+          <NuxtLink
+            to="/blog"
+            class="mt-lg inline-block text-[13.5px] font-bold text-primary hover:text-ink md:hidden"
+          >
+            Tout le blog →
+          </NuxtLink>
         </div>
       </div>
     </section>
