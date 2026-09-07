@@ -10,7 +10,8 @@ export const colors = {
     dark: '#14264a',
     muted: '#2e4a76',
     card: '#395680',
-    soft: '#edf2fa'
+    soft: '#edf2fa',
+    faint: 'rgb(30 58 110 / 8%)'
   },
   accent: {
     default: '#f0a030',
@@ -27,8 +28,10 @@ export const colors = {
     inverseMuted: 'rgb(255 255 255 / 72%)'
   },
   paper: '#ffffff',
+  paperWarm: '#fbf8f2',
   surface: '#f4f7fc',
   surfaceAlt: '#edf2fa',
+  surfaceSoft: '#f8fafe',
   rule: 'rgb(20 42 82 / 12%)',
   ruleStrong: 'rgb(20 42 82 / 15%)',
   outline: 'rgb(30 58 110 / 45%)',

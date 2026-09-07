@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
-import FormationCard from '~/components/FormationCard.vue'
+import FormationCard from '~/components/Cards/FormationCard.vue'
 
 describe('FormationCard', () => {
   it('renders the title and link', () => {

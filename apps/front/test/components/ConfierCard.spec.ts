@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
-import ConfierCard from '~/components/ConfierCard.vue'
+import ConfierCard from '~/components/Cards/ConfierCard.vue'
 
 describe('ConfierCard', () => {
   it('renders tag, title, body and image labels', () => {

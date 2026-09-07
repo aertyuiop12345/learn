@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
-import ArticleCard from '~/components/ArticleCard.vue'
+import ArticleCard from '~/components/Cards/ArticleCard.vue'
 
 describe('ArticleCard', () => {
   it('renders category, title and date', () => {
@@ -8,7 +8,8 @@ describe('ArticleCard', () => {
       props: {
         category: 'Réglementation',
         title: 'Recyclage CACES : les échéances 2026',
-        date: '28 août 2026 · 4 min'
+        date: '28 août 2026 · 4 min',
+        excerpt: 'Calendrier de recyclage et points de vigilance.'
       },
       global: {
         stubs: {

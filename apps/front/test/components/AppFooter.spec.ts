@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import AppFooter from '~/components/AppFooter.vue'
+import AppFooter from '~/components/Menu/AppFooter.vue'
 
 describe('AppFooter', () => {
   it('renders the brand name and the current year', () => {

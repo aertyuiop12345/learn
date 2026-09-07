@@ -1,41 +1,689 @@
 <template>
-  <article class="mx-auto max-w-prose px-6 py-16">
-    <h1 class="font-display text-2xl font-bold text-ink">{{ centre.name }}</h1>
-    <p v-if="centre.address || centre.city" class="mt-2 font-sans text-ink-muted">
-      {{ [centre.address, centre.postal_code, centre.city].filter(Boolean).join(', ') }}
-    </p>
+  <div class="flex-1 bg-paper">
+    <template v-if="centre">
+      <!-- Hero -->
+      <section
+        class="border-b border-rule bg-linear-to-b from-paper to-surface"
+        aria-labelledby="hero-title"
+      >
+        <div class="mx-auto max-w-container px-gutter-mobile md:px-gutter py-2xl">
+          <div class="grid items-start gap-2xl lg:grid-cols-5">
+            <div class="lg:col-span-3">
+              <p class="text-overline text-accent-text uppercase">
+                Réseau Learn Up Academy · Val-de-Marne (94)
+              </p>
+              <h1
+                id="hero-title"
+                class="mt-sm font-display text-h2 font-extrabold text-ink lg:text-h1"
+              >
+                Centre LEARN UP ACADEMY de Créteil
+              </h1>
+              <p class="mt-sm flex items-center gap-sm text-body text-ink-body">
+                <IconMapPin :size="16" class="shrink-0 text-primary" />
+                14 rue des Refuzniks, 94000 Créteil · Île-de-France
+              </p>
 
-    <dl class="mt-8 grid gap-4 sm:grid-cols-2">
-      <div v-if="centre.phone">
-        <dt class="font-sans text-sm text-ink-muted">Téléphone</dt>
-        <dd class="font-sans text-ink">{{ centre.phone }}</dd>
+              <ul class="mt-md flex flex-wrap gap-sm">
+                <Badge v-for="tag in tags" :key="tag" as="li" variant="chip">{{ tag }}</Badge>
+              </ul>
+
+              <figure
+                class="mt-md flex aspect-video items-center justify-center rounded-md border border-dashed border-outline bg-surface-alt text-center text-small text-ink-muted lg:hidden"
+              >
+                <figcaption>Photo principale du centre — à fournir (16:9)</figcaption>
+              </figure>
+
+              <div class="mt-2xl flex flex-wrap items-center gap-md">
+                <Button
+                  as-child
+                  class="h-control w-full rounded-full bg-accent px-md py-sm text-button font-semibold text-ink transition hover:bg-accent-text sm:w-auto"
+                >
+                  <NuxtLink to="#formations">Trouver une formation dans ce centre</NuxtLink>
+                </Button>
+                <Button
+                  as-child
+                  variant="outline"
+                  class="h-control w-full rounded-full border-outline bg-paper px-md py-sm text-button font-medium text-ink transition hover:border-primary hover:bg-paper hover:text-ink sm:w-auto"
+                >
+                  <NuxtLink to="#">Parler à un conseiller</NuxtLink>
+                </Button>
+                <NuxtLink
+                  to="tel:0184204530"
+                  class="hidden items-center gap-2 font-medium text-ink sm:inline-flex"
+                >
+                  <IconPhone :size="16" class="text-primary" />
+                  01 84 20 45 30
+                </NuxtLink>
+              </div>
+            </div>
+
+            <figure
+              class="hidden aspect-4/3 items-center justify-center rounded-md border border-dashed border-outline bg-surface-alt text-center text-small text-ink-muted lg:col-span-2 lg:flex"
+            >
+              <figcaption>
+                Photo principale du centre — à fournir<br />plateau technique, engins, façade (4:3)
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <!-- Contenu principal -->
+      <div class="mx-auto max-w-container px-gutter-mobile md:px-gutter py-section">
+        <div class="flex flex-col gap-2xl lg:flex-row">
+          <!-- Barre latérale -->
+          <aside
+            class="order-1 flex w-full shrink-0 flex-col gap-2xl lg:order-2 lg:w-callout"
+            aria-label="Informations complémentaires"
+          >
+            <!-- Informations pratiques -->
+            <section aria-labelledby="infos-title">
+              <Card class="h-fit bg-surface">
+                <CardHeader class="p-lg pb-0">
+                  <h2 id="infos-title" class="font-sans text-h4 font-semibold text-ink">
+                    Informations pratiques
+                  </h2>
+                </CardHeader>
+                <CardContent class="p-lg pt-md">
+                  <ul class="space-y-md text-small">
+                    <li class="flex gap-sm">
+                      <IconMapPin :size="17" class="mt-xs shrink-0 text-primary" />
+                      <span class="text-ink-body">
+                        14 rue des Refuzniks<br />94000 Créteil · Val-de-Marne · Île-de-France
+                      </span>
+                    </li>
+                    <li class="flex gap-sm">
+                      <IconPhone :size="17" class="mt-xs shrink-0 text-primary" />
+                      <NuxtLink to="tel:0184204530" class="font-medium text-ink hover:underline">
+                        01 84 20 45 30
+                      </NuxtLink>
+                    </li>
+                    <li class="flex gap-sm">
+                      <IconMail :size="17" class="mt-xs shrink-0 text-primary" />
+                      <NuxtLink
+                        to="mailto:creteil@learnupacademy.fr"
+                        class="text-ink hover:underline"
+                      >
+                        creteil@learnupacademy.fr
+                      </NuxtLink>
+                    </li>
+                    <li class="flex gap-sm">
+                      <IconClock :size="17" class="mt-xs shrink-0 text-primary" />
+                      <span class="text-ink-body">Lundi–vendredi · 8h30–17h30</span>
+                    </li>
+                    <li class="flex gap-sm">
+                      <IconTimetable :size="17" class="mt-xs shrink-0 text-primary" />
+                      <span class="text-ink-body">
+                        Métro 8 — Créteil Préfecture · Bus 117, arrêt Base de loisirs
+                      </span>
+                    </li>
+                    <li class="flex gap-sm">
+                      <IconParking :size="17" class="mt-xs shrink-0 text-primary" />
+                      <span class="text-ink-body">Parking visiteurs sur place</span>
+                    </li>
+                    <li class="flex gap-sm">
+                      <IconAccessibility :size="17" class="mt-xs shrink-0 text-primary" />
+                      <span class="text-ink-body">Locaux accessibles PMR</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </section>
+
+            <!-- Carte -->
+            <section aria-label="Carte de localisation">
+              <Card class="h-fit overflow-hidden rounded-md bg-surface">
+                <CardContent class="p-0">
+                  <div
+                    class="flex aspect-4/3 flex-col items-center justify-center gap-xs bg-surface-alt text-center text-meta text-ink-muted"
+                  >
+                    <IconMapPin :size="24" />
+                    Carte Leaflet · OpenStreetMap — chargée à l'interaction
+                  </div>
+                  <div class="flex items-center justify-between gap-sm bg-paper px-lg py-md">
+                    <p class="text-small text-ink-body">14 rue des Refuzniks, 94000 Créteil</p>
+                    <Button
+                      as-child
+                      variant="link"
+                      class="h-auto p-0 text-small font-bold text-primary hover:text-ink hover:no-underline"
+                    >
+                      <NuxtLink to="#">Ouvrir l'itinéraire →</NuxtLink>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+
+            <!-- Qualité -->
+            <section aria-labelledby="qualite-title">
+              <Card class="h-fit bg-paper">
+                <CardHeader class="p-lg pb-0">
+                  <h2 id="qualite-title" class="font-sans text-h4 font-semibold text-ink">
+                    Qualité et certifications
+                  </h2>
+                </CardHeader>
+                <CardContent class="p-lg pt-md pb-0">
+                  <div class="flex gap-sm">
+                    <span
+                      class="flex h-control-sm w-control-sm shrink-0 items-center justify-center rounded-sm bg-surface-alt"
+                      aria-hidden="true"
+                    >
+                      <IconAward :size="22" class="text-primary" />
+                    </span>
+                    <div class="text-small">
+                      <p class="font-semibold text-ink">Certification Qualiopi</p>
+                      <p class="text-ink-body">
+                        Actions de formation · AFNOR Certification · valide jusqu'au 14 mars 2027.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter class="p-lg pt-lg">
+                  <Button
+                    as-child
+                    variant="outline"
+                    class="w-full justify-center gap-sm rounded-full border-outline bg-paper px-md py-sm text-small font-bold text-ink transition hover:border-primary hover:bg-paper hover:text-ink"
+                  >
+                    <NuxtLink to="#">
+                      <IconDownload :size="15" />
+                      Télécharger le certificat Qualiopi
+                    </NuxtLink>
+                  </Button>
+                </CardFooter>
+              </Card>
+            </section>
+          </aside>
+
+          <!-- Colonne principale -->
+          <div class="order-2 flex flex-1 flex-col gap-2xl lg:order-1">
+            <!-- Le centre -->
+            <section aria-labelledby="le-centre-title">
+              <h2 id="le-centre-title" class="font-display text-h2 font-extrabold text-ink">
+                Le centre
+              </h2>
+              <p class="mt-sm max-w-prose text-body leading-relaxed text-ink-body">
+                Le centre de Créteil couvre les formations réglementaires en sécurité et prévention
+                pour le Val-de-Marne et le sud-est francilien. Il dispose d'un plateau technique de
+                2 400 m² : zone de conduite d'engins, structure de travaux en hauteur et salles
+                d'habilitation électrique.
+              </p>
+              <p class="mt-sm max-w-prose text-body leading-relaxed text-ink-body">
+                Les sessions sont assurées en inter-entreprises dans les locaux du centre, ou en
+                intra sur les sites des entreprises du territoire.
+              </p>
+            </section>
+
+            <!-- Formations disponibles -->
+            <section id="formations" aria-labelledby="formations-title">
+              <div class="flex flex-wrap items-baseline justify-between gap-sm">
+                <h2 id="formations-title" class="font-display text-h2 font-extrabold text-ink">
+                  Les formations disponibles dans ce centre
+                </h2>
+                <span class="text-small text-ink-muted">12 formations · 4 familles</span>
+              </div>
+              <div class="mt-md grid gap-grid sm:grid-cols-2">
+                <CenterFormationCard
+                  v-for="formation in formations"
+                  :key="formation.title"
+                  :family="formation.family"
+                  :title="formation.title"
+                  :description="formation.description"
+                  :meta="formation.meta"
+                  :status="formation.status"
+                />
+              </div>
+              <Button
+                as-child
+                variant="link"
+                class="mt-md h-auto p-0 text-small font-bold text-primary hover:text-ink hover:no-underline"
+              >
+                <NuxtLink to="#">Voir les 12 formations du centre →</NuxtLink>
+              </Button>
+            </section>
+
+            <!-- Prochaines sessions -->
+            <section aria-labelledby="sessions-title">
+              <h2 id="sessions-title" class="font-display text-h2 font-extrabold text-ink">
+                Prochaines sessions
+              </h2>
+              <p class="mt-sm text-small text-ink-muted">Disponibilités actualisées en continu.</p>
+              <ul class="mt-md space-y-md">
+                <li v-for="session in sessions" :key="session.title">
+                  <SessionCard
+                    :day="session.day"
+                    :month="session.month"
+                    :title="session.title"
+                    :meta="session.meta"
+                    :places="session.places"
+                    :type="session.type"
+                  />
+                </li>
+              </ul>
+              <Button
+                as-child
+                variant="link"
+                class="mt-md h-auto p-0 text-small font-bold text-primary hover:text-ink hover:no-underline"
+              >
+                <NuxtLink to="#">Voir toutes les sessions du centre →</NuxtLink>
+              </Button>
+            </section>
+
+            <!-- Avis -->
+            <section aria-labelledby="avis-title">
+              <h2 id="avis-title" class="font-display text-h2 font-extrabold text-ink">Avis</h2>
+
+              <div class="mt-sm rounded-md bg-surface p-md lg:bg-transparent lg:p-0">
+                <div class="flex flex-wrap items-center gap-sm">
+                  <span class="font-display text-h2 font-bold text-ink">
+                    4,7<span class="text-h4 font-normal text-ink-muted">/5</span>
+                  </span>
+                  <span class="text-accent" aria-hidden="true">★★★★★</span>
+                  <span class="text-small text-ink-muted">
+                    214 avis Google — marque LEARN UP ACADEMY
+                  </span>
+                </div>
+                <p class="text-small text-ink-muted">
+                  Avis portant sur la marque LEARN UP ACADEMY, toutes implantations confondues.
+                </p>
+                <div class="mt-md hidden gap-grid sm:grid sm:grid-cols-2">
+                  <TestimonialCard
+                    v-for="avis in avisList"
+                    :key="avis.author"
+                    :stars="avis.stars"
+                    :quote="avis.quote"
+                    :author="avis.author"
+                  />
+                </div>
+              </div>
+            </section>
+
+            <!-- Actualités -->
+            <section aria-labelledby="actus-title">
+              <div class="flex flex-wrap items-baseline justify-between gap-sm">
+                <h2 id="actus-title" class="font-display text-h2 font-extrabold text-ink">
+                  Actualités de ce centre
+                </h2>
+                <Button
+                  as-child
+                  variant="link"
+                  class="hidden h-auto p-0 text-small font-bold text-primary hover:text-ink hover:no-underline sm:inline"
+                >
+                  <NuxtLink to="#">Toutes les actualités →</NuxtLink>
+                </Button>
+              </div>
+              <div class="mt-md grid gap-grid sm:grid-cols-2">
+                <ArticleCard
+                  v-for="(article, index) in articles"
+                  :key="article.title"
+                  :category="article.category"
+                  :title="article.title"
+                  :date="article.date"
+                  :excerpt="article.excerpt"
+                  :image-label="article.imageLabel"
+                  :class="index === 1 ? 'hidden sm:block' : ''"
+                />
+              </div>
+              <Button
+                as-child
+                variant="link"
+                class="mt-md h-auto p-0 text-small font-bold text-primary hover:text-ink hover:no-underline sm:hidden"
+              >
+                <NuxtLink to="#">Toutes les actualités →</NuxtLink>
+              </Button>
+            </section>
+          </div>
+        </div>
+
+        <!-- Bandeau CTA -->
+        <CtaBanner
+          class="mt-2xl"
+          title="Un besoin de formation sur ce territoire ?"
+          text="La demande transmet automatiquement le centre, la ville et la formation concernée — sans ressaisie."
+        >
+          <Button
+            as-child
+            class="h-control w-full rounded-full bg-paper px-lg py-sm text-center text-button font-bold text-ink transition hover:bg-surface sm:w-auto"
+          >
+            <NuxtLink :to="`/centres/demande-de-formation?centre=${slug}`"
+              >Demander une formation</NuxtLink
+            >
+          </Button>
+          <Button
+            as-child
+            variant="outline"
+            class="h-control w-full rounded-full border-outline-inverse bg-transparent px-lg py-sm text-center text-button font-medium text-ink-inverse transition hover:border-ink-inverse hover:bg-ink-inverse/10 sm:w-auto"
+          >
+            <NuxtLink to="#">Parler à un conseiller</NuxtLink>
+          </Button>
+        </CtaBanner>
+
+        <!-- Autres centres -->
+        <section class="mt-2xl" aria-labelledby="autres-title">
+          <div class="flex flex-wrap items-baseline justify-between gap-sm">
+            <h2 id="autres-title" class="font-display text-h2 font-extrabold text-ink">
+              Autres centres en Île-de-France
+            </h2>
+            <Button
+              as-child
+              variant="link"
+              class="hidden h-auto p-0 text-small font-bold text-primary hover:text-ink hover:no-underline sm:inline"
+            >
+              <NuxtLink to="#">Voir le réseau de centres →</NuxtLink>
+            </Button>
+          </div>
+          <div class="mt-md grid gap-grid sm:grid-cols-3">
+            <NuxtLink
+              v-for="nearby in nearbyCenters"
+              :key="nearby.slug"
+              :to="`/centres/${nearby.slug}`"
+              class="block"
+            >
+              <CenterCard
+                :name="nearby.name"
+                :distance="nearby.distance"
+                :formations="nearby.formations"
+                :tags="[]"
+                class="h-full transition hover:shadow-md"
+              />
+            </NuxtLink>
+          </div>
+          <Button
+            as-child
+            variant="link"
+            class="mt-md h-auto p-0 text-small font-bold text-primary hover:text-ink hover:no-underline sm:hidden"
+          >
+            <NuxtLink to="#">Voir le réseau de centres →</NuxtLink>
+          </Button>
+        </section>
       </div>
-      <div v-if="centre.email">
-        <dt class="font-sans text-sm text-ink-muted">Email</dt>
-        <dd class="font-sans text-ink">{{ centre.email }}</dd>
-      </div>
-      <div v-if="centre.contact_name">
-        <dt class="font-sans text-sm text-ink-muted">Interlocuteur</dt>
-        <dd class="font-sans text-ink">
-          {{ centre.contact_name
-          }}<span v-if="centre.contact_role"> — {{ centre.contact_role }}</span>
-        </dd>
-      </div>
-      <div v-if="centre.qualiopi_certified">
-        <dt class="font-sans text-sm text-ink-muted">Certification</dt>
-        <dd class="font-sans text-ink">Qualiopi</dd>
-      </div>
-    </dl>
-  </article>
+    </template>
+
+    <!-- État : erreur de chargement -->
+    <LoadError
+      v-else-if="loadError"
+      title="Les informations du centre n'ont pas pu être chargées."
+      link-to="/centres"
+      link-label="Voir le réseau de centres"
+      @retry="retry"
+    >
+      Le problème est temporaire. Vous pouvez réessayer, ou consulter le réseau de centres.
+    </LoadError>
+
+    <!-- État : centre introuvable -->
+    <NotFound
+      v-else
+      title="Centre introuvable"
+      primary-to="/centres"
+      primary-label="Voir le réseau LEARN UP"
+      secondary-to="/formations"
+      secondary-label="Trouver ma formation"
+      search-placeholder="Décrivez votre besoin — formation, ville, échéance"
+      search-input-id="centre-search"
+      @search="onErrorSearch"
+    >
+      <template #icon>
+        <IconMapPinOff :size="28" class="text-ink" />
+      </template>
+      Cette page de centre n'existe pas ou n'est plus disponible. Le réseau
+      LEARN&nbsp;UP&nbsp;ACADEMY compte plus de 400 centres répartis dans 96 départements.
+    </NotFound>
+  </div>
 </template>
 
 <script setup lang="ts">
-import type { Centre } from '@learnup/types'
+interface Formation {
+  family: string
+  title: string
+  description: string
+  meta: string
+  status: { type: 'success' | 'warning' | 'neutral'; label: string }
+}
+
+interface Session {
+  day: string
+  month: string
+  title: string
+  meta: string
+  places: number
+  type: 'success' | 'warning'
+}
+
+interface ArticleItem {
+  category: string
+  title: string
+  date: string
+  excerpt: string
+  imageLabel: string
+}
+
+interface NearbyCenter {
+  slug: string
+  name: string
+  distance: string
+  formations: string
+}
+
+definePageMeta({
+  layout: 'with-breadcrumb',
+  breadcrumb: [
+    { label: 'Accueil', to: '/' },
+    { label: 'Réseau de centres', to: '/centres' },
+    { label: 'Île-de-France', to: '/centres' },
+    { label: 'Centre de Créteil' }
+  ]
+})
 
 const route = useRoute()
 const slug = route.params.slug as string
 
-const centre = await useDirectusItemBySlug<Centre>('centres', slug, `centre-${slug}`)
+// Maquette : seul le centre de Créteil existe tant que le catalogue centres
+// n'est pas branché — null pour tout autre slug (état introuvable).
+// ?error=1 simule une erreur de chargement pour prévisualiser l'état 6.
+const {
+  data: centre,
+  error: loadError,
+  refresh
+} = await useAsyncData(`centre-${slug}`, () => {
+  if (route.query.error === '1') {
+    return Promise.reject(new Error('Centre load failed'))
+  }
+  return Promise.resolve(slug === 'creteil' ? { slug } : null)
+})
 
-useContentSeo(centre, centre.name)
+type PageState = 'found' | 'not-found' | 'error'
+const pageState = computed<PageState>(() => {
+  if (loadError.value) return 'error'
+  return centre.value ? 'found' : 'not-found'
+})
+
+// Statut HTTP côté SSR selon l'état affiché.
+const requestEvent = useRequestEvent()
+if (requestEvent) {
+  if (pageState.value === 'error') {
+    setResponseStatus(requestEvent, 500, 'Erreur de chargement du centre')
+  } else if (pageState.value === 'not-found') {
+    setResponseStatus(requestEvent, 404, 'Centre introuvable')
+  }
+}
+
+// Breadcrumb adapté à l'état affiché. route.meta est partagé entre toutes
+// les routes /centres/:slug : on réassigne la valeur à chaque changement
+// d'état pour ne pas conserver le breadcrumb d'un slug précédent.
+const defaultBreadcrumb = [
+  { label: 'Accueil', to: '/' },
+  { label: 'Réseau de centres', to: '/centres' },
+  { label: 'Île-de-France', to: '/centres' },
+  { label: 'Centre de Créteil' }
+]
+const stateLabels: Record<Exclude<PageState, 'found'>, string> = {
+  'not-found': 'Centre introuvable',
+  error: 'Erreur de chargement'
+}
+watchEffect(() => {
+  const stateLabel = pageState.value === 'found' ? null : stateLabels[pageState.value]
+  route.meta.breadcrumb = stateLabel
+    ? [
+        { label: 'Accueil', to: '/' },
+        { label: 'Réseau de centres', to: '/centres' },
+        { label: stateLabel }
+      ]
+    : defaultBreadcrumb
+})
+
+const seoByState: Record<
+  PageState,
+  { seo_title: string; seo_description: string; seo_noindex?: boolean }
+> = {
+  found: {
+    seo_title: 'Centre LEARN UP ACADEMY de Créteil',
+    seo_description:
+      'CACES, habilitations électriques, SST et travaux en hauteur au centre de Créteil.'
+  },
+  'not-found': {
+    seo_title: 'Centre introuvable',
+    seo_description: "Cette page de centre n'existe pas ou n'est plus disponible.",
+    seo_noindex: true
+  },
+  error: {
+    seo_title: 'Erreur de chargement',
+    seo_description: "Les informations du centre n'ont pas pu être chargées.",
+    seo_noindex: true
+  }
+}
+// Getter réactif : le SEO suit pageState si refresh() change l'état affiché.
+useContentSeo(
+  () => seoByState[pageState.value],
+  () => seoByState[pageState.value].seo_title
+)
+
+function retry() {
+  if (route.query.error) {
+    // Retire le paramètre de simulation pour permettre un vrai rechargement.
+    const { error: _error, ...query } = route.query
+    navigateTo({ path: route.path, query })
+  } else {
+    refresh()
+  }
+}
+
+function onErrorSearch(query: string) {
+  navigateTo({ path: '/formations', query: query ? { q: query } : {} })
+}
+
+const tags = ['CACES', 'Habilitations', 'SST', 'Hauteur']
+
+const formations: Formation[] = [
+  {
+    family: "Caces · Conduite d'engins",
+    title: 'CACES R489 — chariots élévateurs',
+    description: 'Conduite en sécurité des chariots de manutention, catégories 1A à 5.',
+    meta: '2 à 5 jours · Inter / intra · Recyclage : 5 ans',
+    status: { type: 'success', label: 'Sessions ce mois-ci' }
+  },
+  {
+    family: 'Habilitations électriques',
+    title: 'Habilitation B1-B2-BR-BC',
+    description:
+      'Personnel électricien intervenant en basse tension. Prérequis : formation initiale en électricité.',
+    meta: '3 jours · Inter / intra · Recyclage : 3 ans',
+    status: { type: 'success', label: 'Sessions ce mois-ci' }
+  },
+  {
+    family: 'Santé · Secours',
+    title: 'SST — Sauveteur secouriste du travail',
+    description:
+      'Formation initiale et maintien-actualisation des compétences (MAC). Sans prérequis.',
+    meta: '2 jours · Inter / intra · MAC : 24 mois',
+    status: { type: 'warning', label: 'Session le 18/09' }
+  },
+  {
+    family: 'Travaux en hauteur',
+    title: 'Port du harnais et travail sur cordes',
+    description:
+      "Vérification des EPI, points d'ancrage, déplacements sécurisés. Aptitude médicale requise.",
+    meta: '1 jour · Inter / intra · Recyclage : recommandé 3 ans',
+    status: { type: 'neutral', label: 'Sur demande' }
+  }
+]
+
+const sessions: Session[] = [
+  {
+    day: '12',
+    month: 'Sept',
+    title: 'CACES R489 — cat. 3 · initial',
+    meta: '3 jours · en centre · Créteil',
+    places: 5,
+    type: 'success'
+  },
+  {
+    day: '18',
+    month: 'Sept',
+    title: 'SST — formation initiale',
+    meta: '2 jours · en centre · Créteil',
+    places: 2,
+    type: 'warning'
+  },
+  {
+    day: '24',
+    month: 'Sept',
+    title: 'Habilitation B1-B2-BR — recyclage',
+    meta: '1,5 jour · en centre · Créteil',
+    places: 8,
+    type: 'success'
+  }
+]
+
+const avisList = [
+  {
+    stars: '★★★★★',
+    quote:
+      '« Organisation de la session CACES en moins de deux semaines pour nos 6 caristes. Convocations et attestations transmises dans les délais. »',
+    author: 'Responsable logistique · juin 2026'
+  },
+  {
+    stars: '★★★★☆',
+    quote:
+      "« Recyclages d'habilitation planifiés sur deux sites. Suivi des échéances par l'équipe LEARN UP. »",
+    author: 'Chargée QHSE · avril 2026'
+  }
+]
+
+const articles: ArticleItem[] = [
+  {
+    category: 'Équipement',
+    title: "Extension de la zone de conduite d'engins",
+    date: '26 août 2026',
+    excerpt:
+      '800 m² supplémentaires dédiés aux catégories 3 et 5, opérationnels depuis la rentrée.',
+    imageLabel: 'Photo — nouveau plateau R489'
+  },
+  {
+    category: 'Sessions',
+    title: 'Ouverture des sessions SST du 4e trimestre',
+    date: '12 août 2026',
+    excerpt: 'Inscriptions ouvertes pour les sessions SST du 4e trimestre, places limitées.',
+    imageLabel: 'Photo — salle de formation SST'
+  }
+]
+
+const nearbyCenters: NearbyCenter[] = [
+  {
+    slug: 'vitry',
+    name: 'Centre de Vitry-sur-Seine',
+    distance: 'à 9 km',
+    formations: 'CACES · AIPR · SST'
+  },
+  {
+    slug: 'melun',
+    name: 'Centre de Melun',
+    distance: 'à 34 km',
+    formations: 'Habilitations · Travaux en hauteur'
+  },
+  {
+    slug: 'massy',
+    name: 'Centre de Massy',
+    distance: 'à 21 km',
+    formations: 'CACES · SST · Incendie'
+  }
+]
 </script>
