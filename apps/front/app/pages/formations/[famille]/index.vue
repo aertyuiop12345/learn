@@ -3,7 +3,7 @@
     <template v-if="pageState === 'found'">
       <!-- Hero / intro famille -->
       <section class="border-b border-rule bg-linear-to-b from-paper to-surface">
-        <div class="mx-auto max-w-container px-gutter-mobile py-section md:px-gutter">
+        <div class="mx-auto px-gutter-mobile py-section md:px-gutter">
           <div class="grid grid-cols-1 items-start gap-2xl lg:grid-cols-5">
             <div class="lg:col-span-3">
               <p class="text-overline text-accent-text">Famille de formations</p>
@@ -42,7 +42,7 @@
 
       <!-- Parcourir par type d'engin -->
       <section
-        class="mx-auto w-full max-w-container px-gutter-mobile py-section md:px-gutter"
+        class="mx-auto w-full px-gutter-mobile py-section md:px-gutter"
         aria-labelledby="sous-familles-title"
       >
         <h2 id="sous-familles-title" class="font-sans text-h4 font-bold text-ink">
@@ -73,7 +73,7 @@
       <!-- Liste des formations + filtres -->
       <section
         id="liste-formations"
-        class="mx-auto w-full max-w-container scroll-mt-lg px-gutter-mobile pb-section md:px-gutter"
+        class="mx-auto w-full scroll-mt-lg px-gutter-mobile pb-section md:px-gutter"
         aria-labelledby="liste-title"
       >
         <div class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
@@ -218,7 +218,7 @@
 
       <!-- Blocs d'information -->
       <section
-        class="mx-auto w-full max-w-container px-gutter-mobile pb-section md:px-gutter"
+        class="mx-auto w-full px-gutter-mobile pb-section md:px-gutter"
         aria-label="Informations sur la famille"
       >
         <div class="grid grid-cols-1 gap-lg md:grid-cols-2">
@@ -244,7 +244,7 @@
       </section>
 
       <!-- Bandeau CTA -->
-      <section class="mx-auto w-full max-w-container px-gutter-mobile pb-section md:px-gutter">
+      <section class="mx-auto w-full px-gutter-mobile pb-section md:px-gutter">
         <CtaBanner
           title="Quelle catégorie pour vos équipes ?"
           text="Décrivez vos engins et votre site : LEARN UP identifie les recommandations et catégories applicables."
