@@ -7,8 +7,8 @@
     </div>
     <div class="flex flex-1 flex-col gap-1.5 rounded-md bg-primary-card p-lg">
       <p class="text-overline text-accent uppercase">{{ tag }}</p>
-      <h3 class="font-sans text-[15px] md:text-[17px] font-bold text-ink-inverse">{{ title }}</h3>
-      <p class="text-[13.5px] md:text-[14px] text-ink-inverse/65">{{ body }}</p>
+      <h3 class="font-sans text-body md:text-h3 font-bold text-ink-inverse">{{ title }}</h3>
+      <p class="text-small md:text-body text-ink-inverse/65">{{ body }}</p>
     </div>
   </article>
 
@@ -21,13 +21,13 @@
 
   <div v-else class="flex flex-col gap-1.5 rounded-md bg-primary-card p-lg">
     <p class="text-overline text-accent uppercase">{{ tag }}</p>
-    <h3 class="font-sans text-[15px] md:text-[17px] font-bold text-ink-inverse">{{ title }}</h3>
-    <p class="text-[13.5px] md:text-[14px] text-ink-inverse/65">{{ body }}</p>
+    <h3 class="font-sans text-body md:text-h3 font-bold text-ink-inverse">{{ title }}</h3>
+    <p class="text-small md:text-body text-ink-inverse/65">{{ body }}</p>
   </div>
 </template>
 
 <script setup lang="ts">
-const props = withDefaults(
+withDefaults(
   defineProps<{
     tag: string
     title: string
@@ -41,6 +41,4 @@ const props = withDefaults(
     variant: 'full'
   }
 )
-
-const { tag, title, body, imageLabel, imageSub, variant } = props
 </script>

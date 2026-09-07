@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
-import StatItem from '~/components/StatItem.vue'
+import StatItem from '~/components/Stats/StatItem.vue'
 
 describe('StatItem', () => {
   it('renders value, unit, and label correctly', () => {

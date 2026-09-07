@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
-import LogoWhite from '~/components/LogoWhite.vue'
+import LogoWhite from '~/components/Brand/LogoWhite.vue'
 
 describe('LogoWhite', () => {
   it('renders the NuxtImg logo with correct attributes', () => {

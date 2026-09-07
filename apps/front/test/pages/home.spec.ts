@@ -45,7 +45,7 @@ describe('pages/index', () => {
     expect(wrapper.findAll('.network-card')).toHaveLength(3)
     expect(wrapper.findAll('.formation-card')).toHaveLength(4)
     expect(wrapper.findAll('.center-card')).toHaveLength(2)
-    expect(wrapper.findAll('.confier-card')).toHaveLength(3)
+    expect(wrapper.findAll('.confier-card')).toHaveLength(9)
     expect(wrapper.findAll('.stat')).toHaveLength(4)
     expect(wrapper.findAll('.testimonial')).toHaveLength(3)
     expect(wrapper.findAll('.article')).toHaveLength(3)

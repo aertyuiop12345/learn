@@ -9,16 +9,14 @@
         class="pointer-events-none absolute -right-36 -top-32 h-96 w-96 rounded-full bg-accent/5"
       />
 
-      <div class="relative mx-auto px-gutter-mobile md:px-gutter pb-section pt-4xl text-center">
+      <div class="relative px-gutter-mobile md:px-gutter pb-section pt-4xl text-center">
         <span
           class="inline-block rounded-full border border-primary bg-paper px-4 py-2 text-h4 font-bold uppercase tracking-widest text-primary"
         >
           Plateforme de conseil en formation professionnelle
         </span>
 
-        <h1
-          class="mt-5 font-display text-[29px] md:text-[46px] leading-[1.1] tracking-[-0.02em] font-extrabold text-ink"
-        >
+        <h1 class="mt-5 font-display text-h2 md:text-hero font-extrabold text-ink">
           Vos besoins de formation,<br />
           <span class="text-accent-text">orchestrés</span> de bout en bout.
         </h1>
@@ -85,12 +83,12 @@
     </div>
 
     <!-- Network -->
-    <section class="mx-auto px-gutter-mobile md:px-gutter py-section">
-      <h2 class="text-center font-display text-[22px] md:text-[27px] font-extrabold text-ink">
+    <section class="px-gutter-mobile md:px-gutter py-section">
+      <h2 class="text-center font-display text-h3 md:text-h2 font-extrabold text-ink">
         Construisons ensemble le réseau Learn Up Academy
       </h2>
       <p
-        class="mx-auto mt-sm max-w-prose text-center font-sans text-sm md:text-[15px] text-ink-muted"
+        class="mx-auto mt-sm max-w-prose text-center font-sans text-sm md:text-lead text-ink-muted"
       >
         Rejoignez un réseau national dédié aux formations réglementaires et participez à son
         développement partout en France.
@@ -107,7 +105,7 @@
         />
       </div>
 
-      <p class="mt-xl text-center text-[12.5px] md:text-[13px] text-ink-muted">
+      <p class="mt-xl text-center text-meta md:text-small text-ink-muted">
         Vous êtes un particulier ? Certaines sessions sont ouvertes aux inscriptions individuelles —
         <NuxtLink to="/" class="font-bold text-primary hover:text-primary-muted"
           >contactez le centre le plus proche →</NuxtLink
@@ -116,14 +114,16 @@
     </section>
 
     <!-- How it works -->
-    <section class="mx-auto px-gutter-mobile md:px-gutter pb-section">
-      <p class="text-center text-h4 font-bold uppercase leading-3 tracking-widest text-accent-text">
+    <section class="px-gutter-mobile md:px-gutter pb-section">
+      <p
+        class="text-center text-h4 font-bold uppercase leading-3 tracking-widest text-accent-text my-4"
+      >
         Comment ça marche
       </p>
 
       <ol class="relative mt-2.5 flex flex-col gap-xl md:grid md:grid-cols-4 md:gap-2xl">
         <div
-          class="absolute left-[calc(theme(spacing.control-sm)/2-0.5px)] top-[calc(theme(spacing.control-sm)/2)] bottom-[calc(theme(spacing.control-sm)/2)] z-0 w-px bg-rule-strong md:hidden"
+          class="absolute left-[calc(var(--spacing-control-sm)/2-0.5px)] top-[calc(var(--spacing-control-sm)/2)] bottom-[calc(var(--spacing-control-sm)/2)] z-0 w-px bg-rule-strong md:hidden"
           aria-hidden="true"
         />
         <div
@@ -154,7 +154,7 @@
 
     <!-- Formations -->
     <section id="formations" class="bg-surface py-section">
-      <div class="mx-auto px-gutter-mobile md:px-gutter">
+      <div class="px-gutter-mobile md:px-gutter">
         <div class="flex items-end justify-between">
           <div>
             <h2 class="font-display text-h2 font-extrabold text-ink">Nos formations</h2>
@@ -192,13 +192,13 @@
     </section>
 
     <!-- Centres -->
-    <section id="centres" class="mx-auto px-gutter-mobile md:px-gutter py-section">
+    <section id="centres" class="px-gutter-mobile md:px-gutter py-section">
       <div class="flex flex-col gap-md sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 class="font-display text-[22px] font-extrabold text-ink">
+          <h2 class="font-display text-h3 md:text-h2 font-extrabold text-ink">
             Le réseau Learn Up Academy
           </h2>
-          <p class="mt-sm font-sans text-sm text-ink-muted max-w-[600px]">
+          <p class="mt-sm max-w-prose font-sans text-sm text-ink-muted">
             <span class="font-bold text-primary">+400 centres partenaires</span>
             dans
             <span class="font-bold text-primary">96 départements</span>
@@ -255,16 +255,14 @@
 
     <!-- Confier -->
     <section id="confier" class="bg-primary-muted py-section text-ink-inverse">
-      <div class="mx-auto px-gutter-mobile md:px-gutter">
+      <div class="px-gutter-mobile md:px-gutter">
         <p class="text-h4 font-bold uppercase text-accent">Confier mes formations</p>
 
         <div class="mt-sm flex flex-col gap-md lg:flex-row lg:items-baseline lg:justify-between">
-          <h2
-            class="max-w-prose font-display font-extrabold text-[22px] md:text-[27px] leading-[27.5px] tracking-[-0.26px]"
-          >
+          <h2 class="max-w-prose font-display text-h3 md:text-h2 font-extrabold">
             Un interlocuteur unique orchestre votre plan de formation
           </h2>
-          <p class="max-w-[400px] text-[13.5px] md:text-[14.5px] text-ink-inverse/65">
+          <p class="max-w-callout text-small md:text-body text-ink-inverse/65">
             Pensé pour les RH, responsables formation, QHSE et directions d'exploitation : vous
             gardez la maîtrise, nous portons l'exécution.
           </p>
@@ -328,7 +326,7 @@
     <!-- Stats -->
     <section class="border-b border-rule bg-surface">
       <div
-        class="mx-auto grid grid-cols-2 gap-y-xl gap-x-0 px-gutter-mobile md:px-gutter py-section md:grid-cols-4 md:gap-xl"
+        class="grid grid-cols-2 gap-y-xl gap-x-0 px-gutter-mobile md:px-gutter py-section md:grid-cols-4 md:gap-xl"
       >
         <StatItem
           v-for="stat in stats"
@@ -336,21 +334,21 @@
           :value="stat.value"
           :unit="stat.unit"
           :label="stat.label"
-          class="border-r border-rule even:border-r-0 md:even:border-r last:!border-r-0 odd:pr-md even:pl-md md:px-0"
+          class="border-r border-rule even:border-r-0 md:even:border-r last:border-r-0! odd:pr-md even:pl-md md:px-0"
         />
       </div>
     </section>
 
     <!-- Testimonials -->
-    <section class="mx-auto px-gutter-mobile md:px-gutter py-section">
+    <section class="px-gutter-mobile md:px-gutter py-section">
       <div class="flex flex-wrap items-end justify-between gap-sm">
-        <h2 class="font-display text-[22px] font-extrabold text-ink">
+        <h2 class="font-display text-h3 md:text-h2 font-extrabold text-ink">
           Ce qu'en disent les entreprises
           <span class="md:ml-sm text-small font-medium text-ink-muted"
             >4,7/5 · 312 avis Google</span
           >
         </h2>
-        <NuxtLink to="/" class="hidden md:block text-[13.5px] font-bold text-primary hover:text-ink"
+        <NuxtLink to="/" class="hidden md:block text-small font-bold text-primary hover:text-ink"
           >Voir tous les avis →</NuxtLink
         >
       </div>
@@ -366,7 +364,7 @@
       </div>
 
       <div class="flex justify-center mt-lg">
-        <NuxtLink to="/" class="md:hidden text-[13.5px] font-bold text-primary hover:text-ink"
+        <NuxtLink to="/" class="md:hidden text-small font-bold text-primary hover:text-ink"
           >Voir tous les avis →</NuxtLink
         >
       </div>
@@ -374,12 +372,12 @@
 
     <!-- News -->
     <section id="actualites" class="bg-surface py-section">
-      <div class="mx-auto px-gutter-mobile md:px-gutter">
+      <div class="px-gutter-mobile md:px-gutter">
         <div class="flex items-end justify-between">
           <h2 class="font-display text-h2 font-extrabold text-ink">Actualités</h2>
           <NuxtLink
-            to="/blog"
-            class="hidden md:block whitespace-nowrap font-bold text-primary hover:text-ink text-[13.5px]"
+            to="/actualites"
+            class="hidden md:block whitespace-nowrap text-small font-bold text-primary hover:text-ink"
             >Tout le blog →</NuxtLink
           >
         </div>
@@ -399,7 +397,7 @@
         <div class="flex justify-center">
           <NuxtLink
             to="/blog"
-            class="mt-lg inline-block text-[13.5px] font-bold text-primary hover:text-ink md:hidden"
+            class="mt-lg inline-block text-small font-bold text-primary hover:text-ink md:hidden"
           >
             Tout le blog →
           </NuxtLink>
