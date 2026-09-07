@@ -95,9 +95,7 @@
     </section>
 
     <!-- Filtres + résultats -->
-    <section
-      class="mx-auto w-full px-gutter-mobile max-md:pt-0 py-section md:px-gutter"
-    >
+    <section class="mx-auto w-full px-gutter-mobile max-md:pt-0 py-section md:px-gutter">
       <div class="grid grid-cols-1 gap-2xl lg:grid-cols-[260px_1fr]">
         <!-- Sidebar filtres desktop -->
         <aside aria-label="Filtres du catalogue" class="hidden lg:block">
