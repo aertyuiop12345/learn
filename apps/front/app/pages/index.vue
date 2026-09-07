@@ -123,11 +123,11 @@
 
       <ol class="relative mt-2.5 flex flex-col gap-xl md:grid md:grid-cols-4 md:gap-2xl">
         <div
-          class="absolute left-[calc(var(--spacing-control-sm)/2-0.5px)] top-[calc(var(--spacing-control-sm)/2)] bottom-[calc(var(--spacing-control-sm)/2)] z-0 w-px bg-rule-strong md:hidden"
+          class="absolute left-[calc(var(--spacing-control-sm)/2_-_0.5px)] top-[calc(var(--spacing-control-sm)/2)] bottom-[calc(var(--spacing-control-sm)/2)] z-0 w-px bg-rule-strong md:hidden"
           aria-hidden="true"
         />
         <div
-          class="absolute top-[calc(var(--spacing-control-sm)/2-0.5px)] left-0 right-0 z-0 mx-auto hidden h-px w-4/5 bg-rule-strong md:block"
+          class="absolute top-[calc(var(--spacing-control-sm)/2_-_0.5px)] left-0 right-0 z-0 mx-auto hidden h-px w-4/5 bg-rule-strong md:block"
           aria-hidden="true"
         />
 
@@ -396,7 +396,7 @@
 
         <div class="flex justify-center">
           <NuxtLink
-            to="/blog"
+            to="/actualites"
             class="mt-lg inline-block text-small font-bold text-primary hover:text-ink md:hidden"
           >
             Tout le blog →
