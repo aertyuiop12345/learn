@@ -25,7 +25,7 @@ export default defineNuxtConfig({
       ]
     }
   },
-  modules: ['shadcn-nuxt'],
+  modules: ['shadcn-nuxt', '@nuxt/image'],
   css: ['~/assets/css/main.css'],
   vite: {
     plugins: [tailwindcss()]
