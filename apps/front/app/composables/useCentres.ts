@@ -65,11 +65,15 @@ function cacheKey(query: CentresQuery): string {
 /**
  * Liste des centres filtrée côté Directus — refetch à chaque changement de
  * `query` (watch useAsyncData). Dégrade à [] en cas d'échec, loggé serveur.
+ *
+ * Retourné sans `await` : à l'appelant de décider d'attendre ou non, pour
+ * qu'en navigation client la page monte tout de suite et `pending` pilote
+ * l'état de chargement du champ de recherche.
  */
-export async function useCentres(query: MaybeRefOrGetter<CentresQuery>) {
+export function useCentres(query: MaybeRefOrGetter<CentresQuery>) {
   const directus = useDirectusClient()
 
-  const { data, pending, error, refresh } = await useAsyncData<Centre[]>(
+  return useAsyncData<Centre[]>(
     `centres:${cacheKey(toValue(query))}`,
     async () => {
       try {
@@ -87,18 +91,16 @@ export async function useCentres(query: MaybeRefOrGetter<CentresQuery>) {
       watch: [() => cacheKey(toValue(query))]
     }
   )
-
-  return { data, pending, error, refresh }
 }
 
 /**
  * Liste des valeurs de département pour le filtre — requête légère dédiée
  * (2 champs) puisque la liste filtrée ne couvre que le département courant.
  */
-export async function useCentreDepartments() {
+export function useCentreDepartments() {
   const directus = useDirectusClient()
 
-  const { data } = await useAsyncData<string[]>('centres-departments', async () => {
+  return useAsyncData<string[]>('centres-departments', async () => {
     try {
       const rows = await directus.request<
         Array<Pick<Centre, 'department' | 'departments_covered'>>
@@ -124,6 +126,4 @@ export async function useCentreDepartments() {
       return []
     }
   })
-
-  return data
 }

@@ -94,7 +94,7 @@ describe('useCentreDepartments', () => {
       { department: null, departments_covered: null }
     ])
 
-    const departments = await useCentreDepartments()
+    const { data: departments } = await useCentreDepartments()
 
     expect(requestMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -107,7 +107,7 @@ describe('useCentreDepartments', () => {
   it('dégrade à [] en cas d’erreur Directus', async () => {
     requestMock.mockRejectedValue(new Error('network'))
 
-    const departments = await useCentreDepartments()
+    const { data: departments } = await useCentreDepartments()
 
     expect(departments.value).toEqual([])
   })

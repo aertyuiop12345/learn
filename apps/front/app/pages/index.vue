@@ -242,6 +242,7 @@
             input-id="map-search"
             sr-label="Rechercher une ville, code postal ou département"
             placeholder="Ville, code postal ou département"
+            @submit="onMapSearch"
           >
             <template #icon>
               <IconSearch :size="20" class="shrink-0 text-primary" />
@@ -584,6 +585,13 @@ function centreFormations(centre: Centre): string {
 
 function centreTags(centre: Centre): string[] {
   return centre.region ? [centre.region] : []
+}
+
+// Soumission de la recherche réseau : la requête part en query `q` et la
+// page /centres l'applique automatiquement via route.query.q.
+function onMapSearch(value: string) {
+  const q = value.trim()
+  navigateTo({ path: '/centres', query: q ? { q } : {} })
 }
 
 const confierCards = [

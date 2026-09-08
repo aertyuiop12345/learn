@@ -255,8 +255,18 @@ const centresFilters = computed<CentresQuery>(() => ({
   search: appliedSearch.value.trim() || undefined
 }))
 
-const { data: centres, pending: centresPending } = await useCentres(centresFilters)
-const departments = await useCentreDepartments()
+const centresResult = useCentres(centresFilters)
+const departmentsResult = useCentreDepartments()
+
+// SSR : on attend le fetch pour embarquer les données dans le payload.
+// En navigation client (ex. redirection /centres?q=… depuis l'accueil) la
+// page monte immédiatement et `pending` affiche le chargement dans le champ.
+if (import.meta.server) {
+  await Promise.all([centresResult, departmentsResult])
+}
+
+const { data: centres, pending: centresPending } = centresResult
+const { data: departments } = departmentsResult
 const centresCount = computed(() => centres.value?.length ?? 0)
 const departmentsCount = computed(() => departments.value?.length ?? 0)
 

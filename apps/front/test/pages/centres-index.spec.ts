@@ -1,6 +1,6 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { computed, defineComponent, h, nextTick, ref, Suspense, toValue } from 'vue'
+import { computed, defineComponent, h, nextTick, reactive, ref, Suspense, toValue } from 'vue'
 import type { CentresQuery } from '~/composables/useCentres'
 import CentresPage from '~/pages/centres/index.vue'
 
@@ -71,25 +71,30 @@ function filterFixture(query: CentresQuery) {
   return list
 }
 
+const routeStub = reactive({ query: {} as Record<string, string> })
+
 vi.stubGlobal('definePageMeta', vi.fn())
 vi.stubGlobal('useContentSeo', seoMock)
-vi.stubGlobal('useRoute', () => ({ query: {} }))
-vi.stubGlobal('useCentres', async (query: Parameters<typeof toValue>[0]) => ({
+vi.stubGlobal('useRoute', () => routeStub)
+vi.stubGlobal('useCentres', (query: Parameters<typeof toValue>[0]) => ({
   data: computed(() => filterFixture(toValue(query) as CentresQuery)),
   pending: ref(false),
   error: ref(null),
   refresh: vi.fn()
 }))
-vi.stubGlobal('useCentreDepartments', async () =>
-  computed(() => {
+vi.stubGlobal('useCentreDepartments', () => ({
+  data: computed(() => {
     const set = new Set<string>()
     for (const c of centresFixture.value) {
       if (c.department) set.add(c.department)
       for (const dept of c.departments_covered ?? []) set.add(dept)
     }
     return [...set].sort((a, b) => a.localeCompare(b, 'fr'))
-  })
-)
+  }),
+  pending: ref(false),
+  error: ref(null),
+  refresh: vi.fn()
+}))
 
 const stubs = {
   NuxtLink: { template: '<a><slot /></a>' },
@@ -136,6 +141,7 @@ describe('pages/centres/index', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     centresFixture.value = directusCentres
+    routeStub.query = {}
   })
 
   it('affiche les centres issus de Directus', async () => {
@@ -275,6 +281,26 @@ describe('pages/centres/index', () => {
     const cards = wrapper.findAll('.center-card')
     expect(cards).toHaveLength(1)
     expect(cards[0]!.text()).toContain('Vitry-sur-Seine')
+  })
+
+  it('démarre la recherche automatiquement depuis ?q=', async () => {
+    routeStub.query = { q: 'vitry' }
+    const wrapper = await mountPage()
+
+    const input = wrapper.find('.city-search').element as HTMLInputElement
+    expect(input.value).toBe('vitry')
+    expect(wrapper.findAll('.center-card')).toHaveLength(1)
+    expect(wrapper.text()).toContain('Vitry-sur-Seine')
+  })
+
+  it('applique une recherche arrivée via ?q= après le montage', async () => {
+    const wrapper = await mountPage()
+    expect(wrapper.findAll('.center-card')).toHaveLength(3)
+
+    routeStub.query = { q: 'vitry' }
+    await nextTick()
+
+    expect(wrapper.findAll('.center-card')).toHaveLength(1)
   })
 
   it('filtre les centres par la recherche ville/code postal', async () => {
