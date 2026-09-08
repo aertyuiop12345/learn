@@ -42,10 +42,7 @@ export default defineNuxtConfig({
     public: {
       apiBase,
       directusUrl: directusUrlPublic,
-      siteUrl,
-      socialShare: {
-        baseUrl: siteUrl
-      }
+      siteUrl
     }
   }
 })
