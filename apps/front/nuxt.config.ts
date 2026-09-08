@@ -3,6 +3,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { typography } from '@learnup/ui'
 
 const apiBase = process.env.NUXT_API_BASE ?? 'http://localhost:3001'
+const siteUrl = process.env.NUXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 // Deux valeurs distinctes : le rendu SSR tourne dans le conteneur front et
 // doit joindre Directus via le nom de service Docker (`directus`), alors que
 // le navigateur (hydratation, navigation client) ne connaît que l'URL
@@ -25,7 +26,7 @@ export default defineNuxtConfig({
       ]
     }
   },
-  modules: ['shadcn-nuxt', '@nuxt/image'],
+  modules: ['shadcn-nuxt', '@nuxt/image', '@stefanobartoletti/nuxt-social-share'],
   css: ['~/assets/css/main.css'],
   vite: {
     plugins: [tailwindcss()]
@@ -39,7 +40,10 @@ export default defineNuxtConfig({
     directusUrl: directusUrlServer,
     public: {
       apiBase,
-      directusUrl: directusUrlPublic
+      directusUrl: directusUrlPublic,
+      socialShare: {
+        baseUrl: siteUrl
+      }
     }
   }
 })
