@@ -34,6 +34,8 @@ export interface Centre extends SeoFields {
   qualiopi_certified: boolean | null
   qualiopi_certificate_number: string | null
   image: string | null
+  latitude: number | null
+  longitude: number | null
 }
 
 export interface FamilleFormation extends SeoFields {

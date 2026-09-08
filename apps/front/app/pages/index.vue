@@ -220,9 +220,20 @@
 
       <div class="mt-xl grid gap-grid lg:grid-cols-3">
         <div
-          class="lg:col-span-2 flex aspect-2/1 items-center justify-center rounded-md border border-dashed border-outline bg-surface text-center text-meta text-ink-muted px-md"
+          class="h-80 overflow-hidden rounded-md border border-rule bg-surface md:h-96 lg:col-span-2"
         >
-          Carte de France interactive<br />départements + pins centres — lisible, pas un outil SIG
+          <CenterMap
+            v-if="homeMapCenters.length"
+            :centers="homeMapCenters"
+            :active-id="null"
+            :caption="''"
+          />
+          <div
+            v-else
+            class="flex h-full items-center justify-center px-md text-center text-meta text-ink-muted"
+          >
+            Carte de France interactive<br />départements + pins centres — lisible, pas un outil SIG
+          </div>
         </div>
 
         <div class="flex flex-col gap-md lg:col-span-1">
@@ -417,6 +428,7 @@
 import { computed, ref } from 'vue'
 import type { Centre } from '@learnup/types'
 import { mapCourse, useCatalog } from '~/composables/useCatalog'
+import type { CenterResult } from '~/types/center-result'
 
 useContentSeo(
   {
@@ -525,12 +537,42 @@ const dernieresFormations = computed(() =>
 
 // 2 derniers centres publiés (Directus) — colonne droite de la section réseau.
 const derniersCentresData = await useDirectusList<Centre>('centres', 'home-centres', {
-  fields: ['slug', 'name', 'city', 'department', 'region', 'specialties'],
+  fields: [
+    'slug',
+    'name',
+    'address',
+    'postal_code',
+    'city',
+    'department',
+    'region',
+    'specialties',
+    'latitude',
+    'longitude'
+  ],
   filter: { status: { _eq: 'published' } },
   sort: ['-id'],
-  limit: 2
+  limit: -1
 })
-const derniersCentres = computed(() => derniersCentresData.value ?? [])
+const derniersCentres = computed(() => (derniersCentresData.value ?? []).slice(0, 2))
+
+const homeMapCenters = computed<CenterResult[]>(() =>
+  (derniersCentresData.value ?? []).map((centre) => {
+    const location = [centre.address, centre.postal_code, centre.city, centre.department]
+      .filter(Boolean)
+      .join(', ')
+    const tags = (centre.specialties ?? []).join(' · ')
+    return {
+      id: centre.slug,
+      name: centre.name,
+      cp: centre.postal_code ?? '',
+      address: location,
+      tags,
+      tagsShort: tags,
+      lat: centre.latitude ?? undefined,
+      lng: centre.longitude ?? undefined
+    }
+  })
+)
 
 function centreDistance(centre: Centre): string {
   return [centre.city, centre.department].filter(Boolean).join(' · ')

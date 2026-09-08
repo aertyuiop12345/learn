@@ -23,6 +23,10 @@ registerByName(uiComponents)
 config.global.stubs = {
   ...config.global.stubs,
   NuxtLink: { template: '<a :href="to"><slot /></a>' },
+  CenterMap: {
+    props: ['centers', 'activeId', 'caption', 'mode'],
+    template: '<div class="center-map" />'
+  },
   CenterFormationCard: {
     props: ['title', 'family'],
     template: '<div class="formation-card">{{ family }} — {{ title }}</div>'

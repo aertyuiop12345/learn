@@ -1,6 +1,6 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h, ref, Suspense } from 'vue'
+import { defineComponent, h, nextTick, ref, Suspense } from 'vue'
 import CentresPage from '~/pages/centres/index.vue'
 
 const seoMock = vi.fn()
@@ -47,10 +47,12 @@ const directusCentres = [
   }
 ]
 
+const centresFixture = { value: directusCentres }
+
 vi.stubGlobal('definePageMeta', vi.fn())
 vi.stubGlobal('useContentSeo', seoMock)
 vi.stubGlobal('useRoute', () => ({ query: {} }))
-vi.stubGlobal('useDirectusList', async () => ref(directusCentres))
+vi.stubGlobal('useDirectusList', async () => ref(centresFixture.value))
 
 const stubs = {
   NuxtLink: { template: '<a><slot /></a>' },
@@ -71,7 +73,7 @@ const stubs = {
     props: ['modelValue'],
     emits: ['update:modelValue', 'submit'],
     template:
-      '<input class="city-search" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />'
+      '<input class="city-search" :value="modelValue" @keydown.enter="$emit(\'submit\', $event.target.value)" />'
   },
   Button: { template: '<button><slot /></button>' },
   CenterResultCard: {
@@ -96,6 +98,7 @@ async function mountPage() {
 describe('pages/centres/index', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    centresFixture.value = directusCentres
   })
 
   it('affiche les centres issus de Directus', async () => {
@@ -106,6 +109,102 @@ describe('pages/centres/index', () => {
     expect(wrapper.text()).toContain('3 centres')
     // Le premier centre est actif par défaut (watch immediate).
     expect(wrapper.find('.center-card').attributes('data-active')).toBe('true')
+  })
+
+  it('limite la liste au panneau desktop sans bloquer le scroll de la page', async () => {
+    const wrapper = await mountPage()
+    const list = wrapper.find('[data-testid="centres-scroll-list"]')
+
+    expect(list.classes()).toContain('lg:h-full')
+    expect(list.classes()).toContain('lg:overflow-y-auto')
+    expect(list.classes()).not.toContain('lg:overscroll-contain')
+    expect(list.element.parentElement?.classList.contains('lg:overflow-hidden')).toBe(true)
+  })
+
+  it("n'affiche la fin de liste que si son contenu déborde", async () => {
+    const wrapper = await mountPage()
+    const list = wrapper.find('[data-testid="centres-scroll-list"]').element
+
+    Object.defineProperties(list, {
+      clientHeight: { configurable: true, value: 400 },
+      scrollHeight: { configurable: true, value: 300 }
+    })
+    window.dispatchEvent(new Event('resize'))
+    await nextTick()
+    expect(wrapper.text()).not.toContain('Vous avez atteint la fin de la liste')
+
+    Object.defineProperty(list, 'scrollHeight', { configurable: true, value: 1000 })
+    window.dispatchEvent(new Event('resize'))
+    await nextTick()
+    expect(wrapper.text()).toContain('Vous avez atteint la fin de la liste')
+  })
+
+  it('affiche trois skeletons pendant le chargement du lot suivant', async () => {
+    centresFixture.value = Array.from({ length: 15 }, (_, index) => ({
+      ...directusCentres[0]!,
+      id: index + 1,
+      slug: `centre-${index + 1}`,
+      name: `Centre ${index + 1}`
+    }))
+    const OriginalIntersectionObserver = globalThis.IntersectionObserver
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame
+    let observerCallback:
+      ((entries: IntersectionObserverEntry[], observer: IntersectionObserver) => void) | undefined
+    let frameCallback: ((time: number) => void) | undefined
+
+    class IntersectionObserverMock {
+      root = null
+      rootMargin = ''
+      thresholds = []
+
+      constructor(
+        callback: (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => void
+      ) {
+        observerCallback = callback
+      }
+
+      disconnect() {
+        return undefined
+      }
+      observe() {
+        return undefined
+      }
+      takeRecords() {
+        return []
+      }
+      unobserve() {
+        return undefined
+      }
+    }
+
+    vi.stubGlobal('IntersectionObserver', IntersectionObserverMock)
+    vi.stubGlobal('requestAnimationFrame', (callback: (time: number) => void) => {
+      frameCallback = callback
+      return 1
+    })
+
+    const wrapper = await mountPage()
+    expect(wrapper.findAll('.center-card')).toHaveLength(12)
+
+    observerCallback?.(
+      [{ isIntersecting: true } as IntersectionObserverEntry],
+      {} as IntersectionObserver
+    )
+    await nextTick()
+    expect(
+      wrapper.findAll('[aria-label="Chargement de centres supplémentaires"] > div')
+    ).toHaveLength(3)
+
+    frameCallback?.(0)
+    await flushPromises()
+    expect(wrapper.findAll('.center-card')).toHaveLength(15)
+    expect(wrapper.find('[aria-label="Chargement de centres supplémentaires"]').exists()).toBe(
+      false
+    )
+
+    wrapper.unmount()
+    vi.stubGlobal('IntersectionObserver', OriginalIntersectionObserver)
+    vi.stubGlobal('requestAnimationFrame', originalRequestAnimationFrame)
   })
 
   it('construit le filtre département depuis les données', async () => {
@@ -129,10 +228,23 @@ describe('pages/centres/index', () => {
     expect(wrapper.text()).toContain('Centre de Lyon')
   })
 
+  it('ne filtre pas pendant la saisie, seulement à la soumission', async () => {
+    const wrapper = await mountPage()
+
+    await wrapper.find('.city-search').setValue('vitry')
+    expect(wrapper.findAll('.center-card')).toHaveLength(3)
+
+    await wrapper.find('.city-search').trigger('keydown.enter')
+    const cards = wrapper.findAll('.center-card')
+    expect(cards).toHaveLength(1)
+    expect(cards[0]!.text()).toContain('Vitry-sur-Seine')
+  })
+
   it('filtre les centres par la recherche ville/code postal', async () => {
     const wrapper = await mountPage()
 
     await wrapper.find('.city-search').setValue('vitry')
+    await wrapper.find('.city-search').trigger('keydown.enter')
 
     const cards = wrapper.findAll('.center-card')
     expect(cards).toHaveLength(1)
@@ -143,6 +255,7 @@ describe('pages/centres/index', () => {
     const wrapper = await mountPage()
 
     await wrapper.find('.city-search').setValue('zzz-inexistant')
+    await wrapper.find('.city-search').trigger('keydown.enter')
 
     expect(wrapper.findAll('.center-card')).toHaveLength(0)
     expect(wrapper.text()).toContain('Aucun centre ne correspond à cette sélection')

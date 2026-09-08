@@ -9,19 +9,19 @@
     <label :for="inputId" class="sr-only">{{ srLabel }}</label>
     <Input
       :id="inputId"
-      :model-value="modelValue"
+      :model-value="draft"
       :type="type"
       :placeholder="placeholder"
       class="h-auto flex-1 border-0 bg-transparent px-0 text-small text-ink shadow-none placeholder:text-ink-placeholder focus-visible:ring-0"
       @update:model-value="onInput"
-      @keydown.enter="$emit('submit', ($event.target as HTMLInputElement).value)"
+      @keydown.enter="submit"
     />
     <button
-      v-if="modelValue"
+      v-if="draft"
       type="button"
       class="flex h-lg w-lg shrink-0 items-center justify-center rounded-full text-ink-subtle transition hover:bg-surface hover:text-ink"
       :aria-label="clearLabel"
-      @click="onInput('')"
+      @click="clear"
     >
       <IconClose :size="14" />
     </button>
@@ -30,7 +30,7 @@
       size="icon"
       :aria-label="buttonLabel"
       class="h-8 w-8 shrink-0 rounded-full bg-primary text-paper hover:bg-primary-dark"
-      @click="$emit('submit', modelValue ?? '')"
+      @click="submit"
     >
       <IconSearch :size="16" />
     </Button>
@@ -38,7 +38,9 @@
 </template>
 
 <script setup lang="ts">
-withDefaults(
+import { ref, watch } from 'vue'
+
+const props = withDefaults(
   defineProps<{
     modelValue?: string
     inputId: string
@@ -64,7 +66,27 @@ const emit = defineEmits<{
   submit: [value: string]
 }>()
 
+const draft = ref(props.modelValue ?? '')
+
+watch(
+  () => props.modelValue,
+  (value) => {
+    draft.value = value
+  }
+)
+
 function onInput(value: string | number) {
-  emit('update:modelValue', String(value))
+  draft.value = String(value)
+}
+
+function submit() {
+  emit('update:modelValue', draft.value)
+  emit('submit', draft.value)
+}
+
+function clear() {
+  draft.value = ''
+  emit('update:modelValue', '')
+  emit('submit', '')
 }
 </script>
