@@ -24,6 +24,13 @@ interface UpsertBatch {
   }[]
 }
 
+interface FetchLikeResponse {
+  ok: boolean
+  status: number
+  json(): Promise<unknown>
+  text(): Promise<string>
+}
+
 @Injectable()
 export class DirectusMirrorService {
   private readonly logger = new Logger(DirectusMirrorService.name)
@@ -182,7 +189,7 @@ export class DirectusMirrorService {
       const timeout = setTimeout(() => controller.abort(), this.timeoutMs)
 
       try {
-        const response = await fetch(url, {
+        const response = (await fetch(url, {
           method,
           headers: {
             Authorization: `Bearer ${this.token}`,
@@ -190,7 +197,7 @@ export class DirectusMirrorService {
           },
           body: body ? JSON.stringify(body) : undefined,
           signal: controller.signal
-        })
+        })) as unknown as FetchLikeResponse
 
         if (!response.ok) {
           const text = await response.text()

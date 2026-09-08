@@ -77,6 +77,13 @@ export interface DigiformaProgramsResponse {
 const PAGE_SIZE = 100
 const MAX_PAGES = 100
 
+interface FetchLikeResponse {
+  ok: boolean
+  status: number
+  json(): Promise<unknown>
+  text(): Promise<string>
+}
+
 @Injectable()
 export class DigiformaClient {
   private readonly logger = new Logger(DigiformaClient.name)
@@ -122,7 +129,7 @@ export class DigiformaClient {
     const query = this.buildProgramsQuery()
 
     try {
-      const response = await fetch(this.url, {
+      const response = (await fetch(this.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -133,7 +140,7 @@ export class DigiformaClient {
           variables: { page, size: PAGE_SIZE }
         }),
         signal: AbortSignal.timeout(30_000)
-      })
+      })) as unknown as FetchLikeResponse
 
       if (!response.ok) {
         throw new Error(`Digiforma HTTP ${response.status}`)
