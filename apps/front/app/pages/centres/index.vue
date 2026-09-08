@@ -8,9 +8,9 @@
           Réseau de centres
         </h1>
         <p class="mt-sm max-w-prose text-body text-ink-body">
-          {{ centres.length }} centre{{ centres.length > 1 ? 's' : '' }} couvrent
-          {{ departments.length }} département{{ departments.length > 1 ? 's' : '' }}. La sélection
-          d'un département affiche les centres de ce territoire.
+          {{ centresCount }} centre{{ centresCount > 1 ? 's' : '' }} couvrent
+          {{ departmentsCount }} département{{ departmentsCount > 1 ? 's' : '' }}. La sélection d'un
+          département affiche les centres de ce territoire.
         </p>
       </div>
     </section>
@@ -49,6 +49,7 @@
                 input-id="city-search"
                 sr-label="Rechercher par ville ou code postal"
                 placeholder="Ville ou code postal"
+                :loading="centresPending"
                 class="w-full sm:w-72"
                 @submit="onSearch"
               />
@@ -224,7 +225,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import type { Centre } from '@learnup/types'
+import type { CentresQuery } from '~/composables/useCentres'
 import type { CenterResult } from '~/types/center-result'
 
 const route = useRoute()
@@ -243,29 +244,21 @@ useContentSeo(
   'Réseau de centres — LEARN UP ACADEMY'
 )
 
-const centres = await useDirectusList<Centre>('centres', 'centres-list', {
-  fields: [
-    'slug',
-    'name',
-    'address',
-    'city',
-    'postal_code',
-    'department',
-    'departments_covered',
-    'region',
-    'specialties',
-    'latitude',
-    'longitude'
-  ],
-  filter: { status: { _eq: 'published' } },
-  limit: -1,
-  sort: ['sort', 'name']
-})
-
 const selectedDept = ref('all')
-const searchQuery = ref(typeof route.query.q === 'string' ? route.query.q : '')
+const appliedSearch = ref(typeof route.query.q === 'string' ? route.query.q : '')
+const searchQuery = ref(appliedSearch.value)
 const activeCenterId = ref<string | null>(null)
 const isMobileMapOpen = ref(false)
+
+const centresFilters = computed<CentresQuery>(() => ({
+  department: selectedDept.value === 'all' ? undefined : selectedDept.value,
+  search: appliedSearch.value.trim() || undefined
+}))
+
+const { data: centres, pending: centresPending } = await useCentres(centresFilters)
+const departments = await useCentreDepartments()
+const centresCount = computed(() => centres.value?.length ?? 0)
+const departmentsCount = computed(() => departments.value?.length ?? 0)
 
 const LIST_CHUNK_SIZE = 12
 const visibleCount = ref(LIST_CHUNK_SIZE)
@@ -275,18 +268,7 @@ const isLoadingMore = ref(false)
 const hasListOverflowed = ref(false)
 let loadMoreObserver: IntersectionObserver | null = null
 
-const departments = computed(() => {
-  const set = new Set<string>()
-  for (const centre of centres.value ?? []) {
-    if (centre.department) set.add(centre.department)
-    for (const dept of centre.departments_covered ?? []) {
-      if (dept) set.add(dept)
-    }
-  }
-  return [...set].sort((a, b) => a.localeCompare(b, 'fr'))
-})
-
-const centreCards = computed<CenterResult[]>(() =>
+const filteredCenters = computed<CenterResult[]>(() =>
   (centres.value ?? []).map((centre) => {
     const location = [centre.address, centre.postal_code, centre.city, centre.department]
       .filter(Boolean)
@@ -304,33 +286,6 @@ const centreCards = computed<CenterResult[]>(() =>
     }
   })
 )
-
-const centresBySlug = computed(() => new Map((centres.value ?? []).map((c) => [c.slug, c])))
-
-const filteredCenters = computed(() => {
-  let list = centreCards.value
-
-  if (selectedDept.value !== 'all') {
-    const dept = selectedDept.value
-    list = list.filter((card) => {
-      const centre = centresBySlug.value.get(card.id)
-      return centre?.department === dept || (centre?.departments_covered ?? []).includes(dept)
-    })
-  }
-
-  const query = searchQuery.value.toLowerCase().trim()
-  if (query) {
-    list = list.filter(
-      (c) =>
-        c.name.toLowerCase().includes(query) ||
-        c.cp.toLowerCase().includes(query) ||
-        c.address.toLowerCase().includes(query) ||
-        c.tags.toLowerCase().includes(query)
-    )
-  }
-
-  return list
-})
 
 const selectedDeptLabel = computed(() =>
   selectedDept.value === 'all' ? 'Tous les départements' : selectedDept.value
@@ -367,7 +322,9 @@ async function loadMoreCenters() {
 watch(
   () => route.query.q,
   (q) => {
-    searchQuery.value = typeof q === 'string' ? q : ''
+    const value = typeof q === 'string' ? q : ''
+    searchQuery.value = value
+    appliedSearch.value = value
   }
 )
 
@@ -426,12 +383,13 @@ function selectCenter(id: string) {
 
 function onSearch(value: string) {
   // La recherche n'est appliquée qu'à la soumission (bouton ou touche Entrée).
-  searchQuery.value = value
+  appliedSearch.value = value
 }
 
 function resetFilters() {
   selectedDept.value = 'all'
   searchQuery.value = ''
+  appliedSearch.value = ''
 }
 
 function openMobileMap() {

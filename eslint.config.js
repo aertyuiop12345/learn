@@ -61,6 +61,8 @@ const nuxtGlobals = {
   useContentSeo: 'readonly',
   useDirectusItemBySlug: 'readonly',
   useDirectusList: 'readonly',
+  useCentres: 'readonly',
+  useCentreDepartments: 'readonly',
   sanitizeHtml: 'readonly',
   logServerError: 'readonly'
 }

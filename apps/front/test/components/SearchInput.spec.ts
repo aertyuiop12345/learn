@@ -69,4 +69,68 @@ describe('SearchInput', () => {
 
     expect((wrapper.find('.search-input').element as HTMLInputElement).value).toBe('')
   })
+
+  it('affiche l’anneau de focus au repos', () => {
+    const wrapper = mountInput()
+
+    expect(wrapper.find('.h-control').classes()).toContain('focus-within:ring-2')
+    expect(wrapper.find('.h-control').classes()).toContain('border-outline')
+  })
+
+  describe('état loading', () => {
+    it('désactive le champ et le bouton, masque le bouton effacer', () => {
+      const wrapper = mountInput({ modelValue: 'sst', loading: true })
+
+      expect(wrapper.find('.search-input').attributes('disabled')).toBeDefined()
+      expect(
+        wrapper.find('button[aria-label="Analyse de votre besoin en cours"]').attributes('disabled')
+      ).toBeDefined()
+      expect(wrapper.find('button[aria-label="Effacer la recherche"]').exists()).toBe(false)
+    })
+
+    it('affiche un spinner à la place de l’icône recherche', () => {
+      const wrapper = mountInput({ loading: true })
+
+      expect(wrapper.find('.animate-spin').exists()).toBe(true)
+    })
+
+    it('annonce le chargement via aria-live et retire l’anneau de focus', () => {
+      const wrapper = mountInput({ loading: true })
+
+      expect(wrapper.find('output').text()).toContain('Analyse de votre besoin en cours')
+      expect(wrapper.find('.h-control').classes()).not.toContain('focus-within:ring-2')
+    })
+
+    it('n’émet rien si submit est déclenché pendant le chargement', async () => {
+      const wrapper = mountInput({ modelValue: 'sst', loading: true })
+
+      await wrapper.find('.search-input').trigger('keydown.enter')
+
+      expect(wrapper.emitted('submit')).toBeUndefined()
+    })
+  })
+
+  describe('état erreur de saisie', () => {
+    it('affiche le message, la bordure danger et les attributs aria liés', () => {
+      const wrapper = mountInput({
+        errorMessage: 'Décrivez votre besoin pour lancer la recherche.'
+      })
+
+      const input = wrapper.find('.search-input')
+      const error = wrapper.find('#test-search-error')
+
+      expect(wrapper.find('.h-control').classes()).toContain('border-danger')
+      expect(input.attributes('aria-invalid')).toBe('true')
+      expect(input.attributes('aria-describedby')).toBe('test-search-error')
+      expect(error.exists()).toBe(true)
+      expect(error.text()).toBe('Décrivez votre besoin pour lancer la recherche.')
+      expect(error.classes()).toContain('text-danger')
+    })
+
+    it('retire l’anneau de focus en erreur', () => {
+      const wrapper = mountInput({ errorMessage: 'Champ requis' })
+
+      expect(wrapper.find('.h-control').classes()).not.toContain('focus-within:ring-2')
+    })
+  })
 })

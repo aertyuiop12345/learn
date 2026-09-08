@@ -1,6 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h, nextTick, ref, Suspense } from 'vue'
+import { computed, defineComponent, h, nextTick, ref, Suspense, toValue } from 'vue'
+import type { CentresQuery } from '~/composables/useCentres'
 import CentresPage from '~/pages/centres/index.vue'
 
 const seoMock = vi.fn()
@@ -49,10 +50,46 @@ const directusCentres = [
 
 const centresFixture = { value: directusCentres }
 
+// Rejoue côté mock le filtrage que Directus applique via buildCentresQuery :
+// le composable reçoit la query réactive de la page et dérive la liste.
+function filterFixture(query: CentresQuery) {
+  let list = centresFixture.value
+  const department = query.department?.trim()
+  if (department) {
+    list = list.filter(
+      (c) => c.department === department || (c.departments_covered ?? []).includes(department)
+    )
+  }
+  const search = query.search?.trim().toLowerCase()
+  if (search) {
+    list = list.filter(
+      (c) =>
+        [c.name, c.city, c.postal_code, c.address].some((f) => f?.toLowerCase().includes(search)) ||
+        (c.specialties ?? []).some((s) => s.toLowerCase() === search)
+    )
+  }
+  return list
+}
+
 vi.stubGlobal('definePageMeta', vi.fn())
 vi.stubGlobal('useContentSeo', seoMock)
 vi.stubGlobal('useRoute', () => ({ query: {} }))
-vi.stubGlobal('useDirectusList', async () => ref(centresFixture.value))
+vi.stubGlobal('useCentres', async (query: Parameters<typeof toValue>[0]) => ({
+  data: computed(() => filterFixture(toValue(query) as CentresQuery)),
+  pending: ref(false),
+  error: ref(null),
+  refresh: vi.fn()
+}))
+vi.stubGlobal('useCentreDepartments', async () =>
+  computed(() => {
+    const set = new Set<string>()
+    for (const c of centresFixture.value) {
+      if (c.department) set.add(c.department)
+      for (const dept of c.departments_covered ?? []) set.add(dept)
+    }
+    return [...set].sort((a, b) => a.localeCompare(b, 'fr'))
+  })
+)
 
 const stubs = {
   NuxtLink: { template: '<a><slot /></a>' },
