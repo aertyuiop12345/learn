@@ -68,6 +68,16 @@ export const collections = [
       { field: 'department', type: 'string', meta: { interface: 'input', width: 'half' } },
       { field: 'region', type: 'string', meta: { interface: 'input', width: 'half' } },
       {
+        field: 'latitude',
+        type: 'float',
+        meta: { interface: 'input', width: 'half', note: 'Latitude (WGS84)' }
+      },
+      {
+        field: 'longitude',
+        type: 'float',
+        meta: { interface: 'input', width: 'half', note: 'Longitude (WGS84)' }
+      },
+      {
         field: 'description',
         type: 'text',
         meta: { interface: 'input-rich-text-html', width: 'full', note: 'Présentation du centre' }

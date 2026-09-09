@@ -7,4 +7,6 @@ export interface CenterResult {
   tagsShort: string
   status?: { type: 'success' | 'warning' | 'neutral'; label: string }
   pos?: { top: string; left: string }
+  lat?: number
+  lng?: number
 }

@@ -16,6 +16,8 @@ export const centres = [
     postal_code: '94000',
     department: 'Val-de-Marne',
     region: 'Île-de-France',
+    latitude: 48.7909,
+    longitude: 2.4534,
     description:
       '<p>Le centre de Créteil couvre les formations réglementaires pour le Val-de-Marne et le sud-est francilien. Plateau technique de 2 400 m² : zone de conduite d’engins, structure de travaux en hauteur et salles d’habilitation électrique.</p>',
     specialties: ['CACES', 'Habilitations électriques', 'SST', 'Travaux en hauteur'],
@@ -38,6 +40,8 @@ export const centres = [
     postal_code: '75012',
     department: 'Paris',
     region: 'Île-de-France',
+    latitude: 48.8481,
+    longitude: 2.3859,
     description:
       '<p>Le centre de Paris accueille les formations tertiaires et management au cœur du 12e arrondissement, à deux pas de la gare de Lyon.</p>',
     specialties: ['Management', 'Bureautique', 'RSE'],
@@ -60,6 +64,8 @@ export const centres = [
     postal_code: '69003',
     department: 'Rhône',
     region: 'Auvergne-Rhône-Alpes',
+    latitude: 45.7599,
+    longitude: 4.8492,
     description:
       '<p>Le centre de Lyon dessert la métropole et la région Auvergne-Rhône-Alpes, avec des salles modulables et un espace de pratique.</p>',
     specialties: ['Informatique', 'Management', 'Finance'],
@@ -82,6 +88,8 @@ export const centres = [
     postal_code: '13002',
     department: 'Bouches-du-Rhône',
     region: 'Provence-Alpes-Côte d’Azur',
+    latitude: 43.3002,
+    longitude: 5.368,
     description:
       '<p>Le centre de Marseille couvre les formations réglementaires et tertiaires pour la région Sud.</p>',
     specialties: ['Santé', 'Sécurité', 'Marketing'],
@@ -104,6 +112,8 @@ export const centres = [
     postal_code: '59000',
     department: 'Nord',
     region: 'Hauts-de-France',
+    latitude: 50.6372,
+    longitude: 3.0633,
     description:
       '<p>Le centre de Lille dessert le Nord-Pas-de-Calais, proche de la gare Lille-Flandres.</p>',
     specialties: ['Ressources humaines', 'Management'],
@@ -126,6 +136,8 @@ export const centres = [
     postal_code: '33000',
     department: 'Gironde',
     region: 'Nouvelle-Aquitaine',
+    latitude: 44.8412,
+    longitude: -0.577,
     description:
       '<p>Le centre de Bordeaux couvre la Nouvelle-Aquitaine avec des sessions inter et des parcours intra sur site.</p>',
     specialties: ['RSE', 'Finance', 'Marketing'],
@@ -148,6 +160,8 @@ export const centres = [
     postal_code: '44000',
     department: 'Loire-Atlantique',
     region: 'Pays de la Loire',
+    latitude: 47.2131,
+    longitude: -1.558,
     description:
       '<p>Le centre de Nantes dessert l’Ouest : formations réglementaires, tertiaires et ateliers pratiques.</p>',
     specialties: ['Santé', 'Informatique'],
@@ -170,6 +184,8 @@ export const centres = [
     postal_code: '31000',
     department: 'Haute-Garonne',
     region: 'Occitanie',
+    latitude: 43.6043,
+    longitude: 1.4437,
     description: '<p>Le centre de Toulouse couvre l’Occitanie, entre Capitole et Jean-Jaurès.</p>',
     specialties: ['Management', 'RSE'],
     opening_hours: 'Lundi–vendredi · 9h00–17h30',

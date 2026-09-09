@@ -1,19 +1,24 @@
 <template>
   <div class="flex flex-1 flex-col">
-    <!-- Top surface section: heading, description and filters -->
-    <section class="bg-surface-soft">
-      <div class="mx-auto max-w-container px-gutter-mobile md:px-gutter py-section">
+    <!-- Top surface section: heading and description -->
+    <section class="shrink-0 bg-surface-soft">
+      <div class="mx-auto max-w-container px-gutter-mobile md:px-gutter pb-lg pt-section">
         <p class="text-overline text-accent-text">LE RÉSEAU LEARN UP</p>
         <h1 class="mt-sm font-display text-h2 font-extrabold text-ink lg:text-h1">
           Réseau de centres
         </h1>
         <p class="mt-sm max-w-prose text-body text-ink-body">
-          {{ centres.length }} centre{{ centres.length > 1 ? 's' : '' }} couvrant
-          {{ departments.length }} département{{ departments.length > 1 ? 's' : '' }}. La sélection
-          d'un département affiche les centres de ce territoire.
+          {{ centresCount }} centre{{ centresCount > 1 ? 's' : '' }} couvrent
+          {{ departmentsCount }} département{{ departmentsCount > 1 ? 's' : '' }}. La sélection d'un
+          département affiche les centres de ce territoire.
         </p>
+      </div>
+    </section>
 
-        <div class="mt-2xl flex flex-col gap-md">
+    <!-- Barre de recherche/filtres : épinglée en haut sur desktop -->
+    <section class="shrink-0 bg-surface-soft lg:sticky lg:top-0 lg:z-30">
+      <div class="mx-auto max-w-container px-gutter-mobile md:px-gutter pb-lg">
+        <div class="flex flex-col gap-md">
           <div class="flex flex-col gap-md sm:flex-row sm:items-center sm:justify-between">
             <div class="flex flex-col gap-md sm:flex-row sm:items-center">
               <Label for="dept-select" class="relative block">
@@ -44,47 +49,139 @@
                 input-id="city-search"
                 sr-label="Rechercher par ville ou code postal"
                 placeholder="Ville ou code postal"
+                :loading="centresPending"
                 class="w-full sm:w-72"
                 @submit="onSearch"
               />
             </div>
 
-            <p class="text-small text-ink">
-              <span class="font-extrabold">{{ filteredCenters.length }}</span>
-              {{ ' ' }}
-              <span class="font-extrabold">{{
-                filteredCenters.length > 1 ? 'centres' : 'centre'
-              }}</span>
-              <template v-if="selectedDept !== 'all'">
-                dans le département
-                <span class="font-extrabold">{{ selectedDept }}</span>
-              </template>
-              <template v-else> au total</template>
-            </p>
+            <div class="flex items-center justify-between gap-sm">
+              <p class="text-small text-ink">
+                <template v-if="filteredCenters.length === 0">
+                  Aucun centre
+                  <template v-if="selectedDept === 'all'">au total</template>
+                  <template v-else>dans le département</template>
+                  <span v-if="selectedDept !== 'all'" class="font-extrabold">{{
+                    selectedDept
+                  }}</span>
+                </template>
+                <template v-else>
+                  <span class="font-extrabold">{{ filteredCenters.length }}</span>
+                  {{ ' ' }}
+                  <span class="font-extrabold">{{
+                    filteredCenters.length > 1 ? 'centres' : 'centre'
+                  }}</span>
+                  <template v-if="selectedDept === 'all'"> au total</template>
+                  <template v-else>
+                    dans le département
+                    <span class="font-extrabold">{{ selectedDept }}</span>
+                  </template>
+                </template>
+              </p>
+              <Button
+                type="button"
+                :variant="isMobileMapOpen ? 'default' : 'outline'"
+                :class="
+                  isMobileMapOpen
+                    ? 'h-control shrink-0 rounded-full bg-primary px-md text-small font-semibold text-paper transition hover:bg-primary-dark lg:hidden'
+                    : 'h-control shrink-0 rounded-full border border-outline bg-paper px-md text-small font-semibold text-ink transition hover:bg-surface lg:hidden'
+                "
+                @click="isMobileMapOpen ? closeMobileMap() : openMobileMap()"
+              >
+                <IconList v-if="isMobileMapOpen" :size="16" />
+                <IconMap v-else :size="16" />
+                {{ isMobileMapOpen ? 'Voir la liste' : 'Voir la carte' }}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Liste des centres -->
-    <section class="bg-paper flex flex-1 flex-col">
-      <div class="mx-auto w-full px-gutter-mobile py-lg md:px-gutter">
+    <!-- Bottom paper section: list and map -->
+    <section class="bg-paper flex flex-col">
+      <!-- Mobile: map replaces list when open -->
+      <div v-if="isMobileMapOpen" class="flex flex-col lg:hidden">
+        <div class="relative h-[60vh] overflow-hidden">
+          <CenterMap
+            :centers="filteredCenters"
+            :active-id="activeCenterId"
+            :caption="selectedDeptLabel"
+            @select="selectCenter"
+          />
+        </div>
+
+        <CenterResultCard
+          v-if="activeCenter"
+          :center="activeCenter"
+          :active="true"
+          class="fixed inset-x-sm bottom-sm z-30 shadow-lg lg:hidden"
+          @select="selectCenter(activeCenter.id)"
+        />
+      </div>
+
+      <!-- Desktop grid + mobile list -->
+      <div
+        class="grid lg:h-[calc(80vh-5rem)] lg:grid-cols-[2fr_3fr] lg:grid-rows-1 lg:overflow-hidden"
+        :class="{ 'hidden lg:grid': isMobileMapOpen }"
+      >
+        <!-- List -->
         <div
           v-if="filteredCenters.length"
-          class="grid h-full min-h-0 flex-1 gap-md sm:grid-cols-2 lg:grid-cols-3"
+          ref="listEl"
+          data-testid="centres-scroll-list"
+          class="flex flex-col gap-md px-gutter-mobile py-lg md:pl-gutter lg:h-full lg:min-h-0 lg:overflow-y-auto lg:pl-[max(48px,calc((100vw-var(--layout-container-max))/2+48px))] lg:pr-md"
         >
           <CenterResultCard
-            v-for="center in filteredCenters"
+            v-for="center in visibleCenters"
             :id="`center-${center.id}`"
             :key="center.id"
             :center="center"
             :active="activeCenterId === center.id"
             @select="selectCenter(center.id)"
           />
+          <div
+            v-if="isLoadingMore"
+            aria-label="Chargement de centres supplémentaires"
+            class="flex flex-col gap-md"
+          >
+            <output class="sr-only">Chargement de centres supplémentaires</output>
+            <div
+              v-for="i in 3"
+              :key="i"
+              class="flex animate-pulse flex-col gap-sm rounded-md border border-rule p-md"
+              aria-hidden="true"
+            >
+              <div class="flex justify-between gap-sm">
+                <div class="h-xs w-2xl rounded-full bg-surface" />
+                <div class="h-xs w-lg rounded-full bg-surface" />
+              </div>
+              <div class="h-xs w-3/4 rounded-full bg-surface" />
+              <div class="h-xs w-1/2 rounded-full bg-surface" />
+              <div class="ml-auto h-control w-2xl rounded-full bg-surface" />
+            </div>
+          </div>
+          <div
+            v-if="visibleCenters.length < filteredCenters.length && !isLoadingMore"
+            ref="sentinelEl"
+            aria-hidden="true"
+            class="h-1"
+          />
+          <p
+            v-if="
+              visibleCenters.length >= filteredCenters.length && hasListOverflowed && !isLoadingMore
+            "
+            class="py-sm text-center text-small text-ink-muted"
+          >
+            Vous avez atteint la fin de la liste
+          </p>
         </div>
 
         <!-- Empty state -->
-        <div v-else class="flex h-full min-h-0 flex-col justify-center py-lg">
+        <div
+          v-else
+          class="flex h-full min-h-0 flex-col justify-center px-gutter-mobile py-lg md:pl-gutter lg:col-span-2 lg:pl-[max(48px,calc((100vw-var(--layout-container-max))/2+48px))] lg:pr-[max(48px,calc((100vw-var(--layout-container-max))/2+48px))]"
+        >
           <div class="rounded-md border border-dashed border-rule bg-paper p-xl text-center">
             <h2 class="font-sans text-h4 text-ink">
               Aucun centre ne correspond à cette sélection pour le moment.
@@ -101,7 +198,6 @@
                 <NuxtLink to="/centres/demande-de-formation">Demander une formation</NuxtLink>
               </Button>
               <Button
-                as-child
                 variant="outline"
                 class="h-control rounded-full border border-outline bg-paper px-md text-small font-bold text-primary transition hover:bg-surface"
                 @click="resetFilters"
@@ -111,14 +207,25 @@
             </div>
           </div>
         </div>
+
+        <!-- Map -->
+        <div v-if="filteredCenters.length" class="hidden lg:block lg:h-full lg:min-h-0">
+          <CenterMap
+            class="h-full"
+            :centers="filteredCenters"
+            :active-id="activeCenterId"
+            :caption="selectedDeptLabel"
+            @select="selectCenter"
+          />
+        </div>
       </div>
     </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
-import type { Centre } from '@learnup/types'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import type { CentresQuery } from '~/composables/useCentres'
 import type { CenterResult } from '~/types/center-result'
 
 const route = useRoute()
@@ -137,32 +244,41 @@ useContentSeo(
   'Réseau de centres — LEARN UP ACADEMY'
 )
 
-const centres = await useDirectusList<Centre>('centres', 'centres-list', {
-  fields: ['slug', 'name', 'address', 'city', 'postal_code', 'department', 'region', 'specialties'],
-  filter: { status: { _eq: 'published' } },
-  limit: -1,
-  sort: ['sort', 'name']
-})
-
 const selectedDept = ref('all')
-const searchQuery = ref(typeof route.query.q === 'string' ? route.query.q : '')
+const appliedSearch = ref(typeof route.query.q === 'string' ? route.query.q : '')
+const searchQuery = ref(appliedSearch.value)
 const activeCenterId = ref<string | null>(null)
+const isMobileMapOpen = ref(false)
 
-// Options du filtre département : uniquement les départements réellement
-// couverts par les centres publiés (champ `department` du centre lui-même,
-// complété par `departments_covered`).
-const departments = computed(() => {
-  const set = new Set<string>()
-  for (const centre of centres.value ?? []) {
-    if (centre.department) set.add(centre.department)
-    for (const dept of centre.departments_covered ?? []) {
-      if (dept) set.add(dept)
-    }
-  }
-  return [...set].sort((a, b) => a.localeCompare(b, 'fr'))
-})
+const centresFilters = computed<CentresQuery>(() => ({
+  department: selectedDept.value === 'all' ? undefined : selectedDept.value,
+  search: appliedSearch.value.trim() || undefined
+}))
 
-const centreCards = computed<CenterResult[]>(() =>
+const centresResult = useCentres(centresFilters)
+const departmentsResult = useCentreDepartments()
+
+// SSR : on attend le fetch pour embarquer les données dans le payload.
+// En navigation client (ex. redirection /centres?q=… depuis l'accueil) la
+// page monte immédiatement et `pending` affiche le chargement dans le champ.
+if (import.meta.server) {
+  await Promise.all([centresResult, departmentsResult])
+}
+
+const { data: centres, pending: centresPending } = centresResult
+const { data: departments } = departmentsResult
+const centresCount = computed(() => centres.value?.length ?? 0)
+const departmentsCount = computed(() => departments.value?.length ?? 0)
+
+const LIST_CHUNK_SIZE = 12
+const visibleCount = ref(LIST_CHUNK_SIZE)
+const listEl = ref<HTMLElement | null>(null)
+const sentinelEl = ref<HTMLElement | null>(null)
+const isLoadingMore = ref(false)
+const hasListOverflowed = ref(false)
+let loadMoreObserver: IntersectionObserver | null = null
+
+const filteredCenters = computed<CenterResult[]>(() =>
   (centres.value ?? []).map((centre) => {
     const location = [centre.address, centre.postal_code, centre.city, centre.department]
       .filter(Boolean)
@@ -174,64 +290,90 @@ const centreCards = computed<CenterResult[]>(() =>
       cp: centre.postal_code ?? '',
       address: location,
       tags,
-      tagsShort: tags
+      tagsShort: tags,
+      lat: centre.latitude ?? undefined,
+      lng: centre.longitude ?? undefined
     }
   })
 )
-
-// Index slug → centre : évite un find() O(n) par carte dans le filtre
-// département (O(n²) sinon).
-const centresBySlug = computed(() => new Map((centres.value ?? []).map((c) => [c.slug, c])))
-
-const filteredCenters = computed(() => {
-  let list = centreCards.value
-
-  if (selectedDept.value !== 'all') {
-    const dept = selectedDept.value
-    list = list.filter((card) => {
-      const centre = centresBySlug.value.get(card.id)
-      return centre?.department === dept || (centre?.departments_covered ?? []).includes(dept)
-    })
-  }
-
-  const query = searchQuery.value.toLowerCase().trim()
-  if (query) {
-    list = list.filter(
-      (c) =>
-        c.name.toLowerCase().includes(query) ||
-        c.cp.toLowerCase().includes(query) ||
-        c.address.toLowerCase().includes(query) ||
-        c.tags.toLowerCase().includes(query)
-    )
-  }
-
-  return list
-})
 
 const selectedDeptLabel = computed(() =>
   selectedDept.value === 'all' ? 'Tous les départements' : selectedDept.value
 )
 
-// La page ne se remonte plus sur changement de query (page-key = path) :
-// resynchroniser la recherche quand ?q= change (retour arrière, lien).
+const activeCenter = computed(() =>
+  filteredCenters.value.find((c) => c.id === activeCenterId.value)
+)
+
+const visibleCenters = computed(() => filteredCenters.value.slice(0, visibleCount.value))
+
+function measureListOverflow() {
+  const el = listEl.value
+  if (!el) {
+    hasListOverflowed.value = false
+    return
+  }
+  const heightLimit =
+    getComputedStyle(el).overflowY === 'auto' ? el.clientHeight : window.innerHeight
+  hasListOverflowed.value = el.scrollHeight > heightLimit + 1
+}
+
+async function loadMoreCenters() {
+  if (isLoadingMore.value || visibleCount.value >= filteredCenters.value.length) return
+  isLoadingMore.value = true
+  await nextTick()
+  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+  visibleCount.value = Math.min(visibleCount.value + LIST_CHUNK_SIZE, filteredCenters.value.length)
+  isLoadingMore.value = false
+  await nextTick()
+  measureListOverflow()
+}
+
 watch(
   () => route.query.q,
   (q) => {
-    searchQuery.value = typeof q === 'string' ? q : ''
+    const value = typeof q === 'string' ? q : ''
+    searchQuery.value = value
+    appliedSearch.value = value
   }
 )
 
 watch(
   filteredCenters,
   (list) => {
-    // Premier centre actif par défaut ; réinitialise si le centre actif
-    // sort de la sélection filtrée.
+    visibleCount.value = LIST_CHUNK_SIZE
+    isLoadingMore.value = false
     if (!activeCenterId.value || !list.some((c) => c.id === activeCenterId.value)) {
       activeCenterId.value = list[0]?.id ?? null
     }
+    nextTick(measureListOverflow)
   },
   { immediate: true }
 )
+
+onMounted(() => {
+  loadMoreObserver = new IntersectionObserver(
+    (entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) loadMoreCenters()
+    },
+    { rootMargin: '160px' }
+  )
+  if (sentinelEl.value) loadMoreObserver.observe(sentinelEl.value)
+  window.addEventListener('resize', measureListOverflow)
+  nextTick(measureListOverflow)
+})
+
+watch(sentinelEl, (el, prev) => {
+  if (!loadMoreObserver) return
+  if (prev) loadMoreObserver.unobserve(prev)
+  if (el) loadMoreObserver.observe(el)
+})
+
+onBeforeUnmount(() => {
+  loadMoreObserver?.disconnect()
+  loadMoreObserver = null
+  window.removeEventListener('resize', measureListOverflow)
+})
 
 function selectCenter(id: string) {
   if (!id) {
@@ -239,19 +381,32 @@ function selectCenter(id: string) {
     return
   }
   activeCenterId.value = id === activeCenterId.value ? null : id
+  const index = filteredCenters.value.findIndex((c) => c.id === id)
+  if (index >= visibleCount.value) {
+    visibleCount.value = Math.min(index + LIST_CHUNK_SIZE, filteredCenters.value.length)
+  }
   nextTick(() => {
     const el = document.getElementById(`center-${id}`)
     el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   })
 }
 
-function onSearch() {
-  // La recherche est déjà réactive via v-model.
-  // Ce handler conserve le bouton de soumission accessible.
+function onSearch(value: string) {
+  // La recherche n'est appliquée qu'à la soumission (bouton ou touche Entrée).
+  appliedSearch.value = value
 }
 
 function resetFilters() {
   selectedDept.value = 'all'
   searchQuery.value = ''
+  appliedSearch.value = ''
+}
+
+function openMobileMap() {
+  isMobileMapOpen.value = true
+}
+
+function closeMobileMap() {
+  isMobileMapOpen.value = false
 }
 </script>

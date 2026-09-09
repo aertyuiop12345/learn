@@ -121,6 +121,15 @@
               </Card>
             </section>
 
+            <!-- Carte d'accès -->
+            <section
+              v-if="centre.latitude != null && centre.longitude != null"
+              aria-labelledby="carte-title"
+            >
+              <h2 id="carte-title" class="sr-only">Carte d'accès</h2>
+              <CenterMap mode="single" :centers="singleCenter" :active-id="null" caption="" />
+            </section>
+
             <!-- Qualité -->
             <section v-if="centre.qualiopi_certified" aria-labelledby="qualite-title">
               <Card class="h-fit bg-paper">
@@ -334,6 +343,7 @@ import {
 import { sanitizeHtml } from '~/utils/sanitizeHtml'
 import { MODALITY_LABELS } from '~/utils/catalog-filters'
 import { sessionSeatType } from '~/utils/placesLabel'
+import type { CenterResult } from '~/types/center-result'
 
 const route = useRoute()
 const slug = route.params.slug as string
@@ -386,6 +396,22 @@ const heroAddress = computed(() =>
     .filter(Boolean)
     .join(', ')
 )
+
+const singleCenter = computed<CenterResult[]>(() => {
+  if (!centre.value || centre.value.latitude == null || centre.value.longitude == null) return []
+  return [
+    {
+      id: String(centre.value.id),
+      name: centre.value.name,
+      cp: centre.value.postal_code ?? '',
+      address: heroAddress.value,
+      tags: '',
+      tagsShort: '',
+      lat: centre.value.latitude,
+      lng: centre.value.longitude
+    }
+  ]
+})
 
 const specialties = computed(() => centre.value?.specialties ?? [])
 
@@ -440,10 +466,14 @@ useContentSeo(
 // rattachées au slug du centre (filtre `center` de l'API).
 const centreCatalog = await useCatalog({ center: slug, limit: 12, page: 1 })
 
-const familyNames = await useDirectusList<FamilleFormation>('familles_formation', `centre-${slug}-familles`, {
-  fields: ['slug', 'name'],
-  filter: { status: { _eq: 'published' } },
-})
+const familyNames = await useDirectusList<FamilleFormation>(
+  'familles_formation',
+  `centre-${slug}-familles`,
+  {
+    fields: ['slug', 'name'],
+    filter: { status: { _eq: 'published' } }
+  }
+)
 // computed : familyNames peut se résoudre après le premier rendu — un Map
 // figé garderait des libellés de famille manquants.
 const familyLabel = computed(() => new Map((familyNames.value ?? []).map((f) => [f.slug, f.name])))

@@ -5,9 +5,11 @@ import HomePage from '~/pages/index.vue'
 
 const seoMock = vi.fn()
 const headMock = vi.fn()
+const navigateMock = vi.fn()
 
 vi.stubGlobal('useContentSeo', seoMock)
 vi.stubGlobal('useHead', headMock)
+vi.stubGlobal('navigateTo', navigateMock)
 
 vi.mock('~/composables/useCatalog', () => ({
   mapCourse: (c: { slug: string; title: string; familySlug?: string | null }) => ({
@@ -51,6 +53,14 @@ const directusCentres = ref([
     department: '69',
     region: 'Auvergne-Rhône-Alpes',
     specialties: ['Hauteur']
+  },
+  {
+    slug: 'lille',
+    name: 'Centre de Lille',
+    city: 'Lille',
+    department: '59',
+    region: 'Hauts-de-France',
+    specialties: ['Incendie']
   }
 ])
 
@@ -61,7 +71,11 @@ vi.stubGlobal(
 
 const stubs = {
   NuxtLink: { props: ['to'], template: '<a :href="to"><slot /></a>' },
-  SearchInput: true,
+  SearchInput: {
+    props: ['modelValue'],
+    emits: ['update:modelValue', 'submit'],
+    template: '<input :value="modelValue" @keydown.enter="$emit(\'submit\', \'vitry\')" />'
+  },
   NetworkCard: {
     props: ['title', 'to'],
     template: '<div class="network-card">{{ title }}<a class="network-cta" :href="to" /></div>'
@@ -114,6 +128,7 @@ describe('pages/index', () => {
 
     expect(wrapper.findAll('.network-card')).toHaveLength(3)
     expect(wrapper.findAll('.formation-card')).toHaveLength(4)
+    // La fixture contient 3 centres : l'affichage est plafonné à 2.
     expect(wrapper.findAll('.center-card')).toHaveLength(2)
     expect(wrapper.findAll('.confier-card')).toHaveLength(9)
     expect(wrapper.findAll('.stat')).toHaveLength(4)
@@ -132,6 +147,14 @@ describe('pages/index', () => {
     expect(hrefs).toContain('/centres/demande-de-formation?sujet=formateur')
     expect(hrefs).toContain('/formations')
     expect(hrefs).toContain('/centres')
+  })
+
+  it('envoie la recherche carte en query q vers /centres', async () => {
+    const wrapper = await mountPage()
+
+    await wrapper.find('input[input-id="map-search"]').trigger('keydown.enter')
+
+    expect(navigateMock).toHaveBeenCalledWith({ path: '/centres', query: { q: 'vitry' } })
   })
 
   it('définit le SEO et le JSON-LD', async () => {
