@@ -176,7 +176,9 @@ export async function useCatalog(query: MaybeRefOrGetter<CatalogQuery>) {
       }
     },
     {
-      watch: [() => toValue(query)]
+      watch: [() => toValue(query)],
+      getCachedData: (key, nuxtApp) =>
+        (nuxtApp.payload.data[key] ?? nuxtApp.static.data[key]) as CatalogApiResult | undefined
     }
   )
 

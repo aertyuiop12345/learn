@@ -1,7 +1,32 @@
-import { Prisma } from '../../prisma/generated/client'
 import type { DigiformaSession, Program } from './digiforma.client'
 
-export type CourseInput = Prisma.CourseCreateInput
+export interface FormationDirectusPayload {
+  digiforma_id: string
+  slug: string
+  title: string
+  description: string | null
+  duration_days: number | null
+  duration_hours: number | null
+  price: number | null
+  cpf: boolean | null
+  cpf_code: string | null
+  certification: string | null
+  certifier_name: string | null
+  category_name: string | null
+  center_slug: string | null
+  center_slugs: string[]
+  modalities: string[]
+  sessions: unknown
+  locations_text: string | null
+  blocks: unknown
+  image_url: string | null
+  generated_program_url: string | null
+  status: 'published' | 'draft' | 'archived'
+  seo_title: string | null
+  seo_description: string | null
+  seo_canonical: string | null
+  raw: unknown
+}
 
 const DIACRITIC_PATTERN = /[\u0300-\u036f]/g
 
@@ -28,12 +53,6 @@ function slugify(input: string): string {
   return slug
 }
 
-function mapFamilySlug(category?: { name?: string | null } | null): string | null {
-  const raw = (category?.name ?? '').trim()
-  if (!raw) return null
-  return slugify(raw)
-}
-
 function mapDescription(description?: string | null): string | null {
   if (!description) return null
   const trimmed = description.trim()
@@ -51,10 +70,6 @@ function mapPrice(program: Program): number | null {
 
 function mapDuration(value?: number | null): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? Math.round(value) : null
-}
-
-function toJsonValue(value: unknown): Prisma.InputJsonValue {
-  return structuredClone(value ?? Prisma.JsonNull) as Prisma.InputJsonValue
 }
 
 const KNOWN_MODALITIES = new Set(['presentiel', 'distanciel', 'hybride', 'intra', 'inter'])
@@ -92,37 +107,36 @@ function mapLocationsText(sessions?: DigiformaSession[] | null): string | null {
   return parts.size > 0 ? [...parts].join(' ') : null
 }
 
-export function mapProgramToCourse(program: Program): CourseInput {
+export function mapProgramToCourse(program: Program): FormationDirectusPayload {
   const title = program.name.trim()
   const slug = slugify(title)
-  const familySlug = mapFamilySlug(program.category)
   const centerSlugs = mapCenterSlugs(program.sessions)
 
   return {
-    digiformaId: program.id,
+    digiforma_id: program.id,
     slug,
     title,
     description: mapDescription(program.description),
-    durationDays: mapDuration(program.durationInDays),
-    durationHours: mapDuration(program.durationInHours),
+    duration_days: mapDuration(program.durationInDays),
+    duration_hours: mapDuration(program.durationInHours),
     price: mapPrice(program),
     cpf: program.cpf ?? null,
-    cpfCode: program.cpfCode ?? null,
+    cpf_code: program.cpfCode ?? null,
     certification: program.certificationType ?? null,
-    certifierName: program.certifierName ?? null,
-    category: program.category?.name ?? null,
-    familySlug,
-    centerSlug: centerSlugs[0] ?? null,
-    centerSlugs,
+    certifier_name: program.certifierName ?? null,
+    category_name: program.category?.name ?? null,
+    center_slug: centerSlugs[0] ?? null,
+    center_slugs: centerSlugs,
     modalities: mapModalities(program),
-    sessions: toJsonValue(program.sessions ?? null),
-    locationsText: mapLocationsText(program.sessions),
-    blocks: toJsonValue(program.blocks ?? null),
-    imageUrl: program.image?.url ?? null,
-    generatedProgramUrl: program.generatedProgramUrl ?? null,
+    sessions: program.sessions ?? null,
+    locations_text: mapLocationsText(program.sessions),
+    blocks: program.blocks ?? null,
+    image_url: program.image?.url ?? null,
+    generated_program_url: program.generatedProgramUrl ?? null,
     status: 'published',
-    seoTitle: title,
-    seoDescription: mapDescription(program.description),
-    raw: toJsonValue(program)
+    seo_title: title,
+    seo_description: mapDescription(program.description),
+    seo_canonical: null,
+    raw: program
   }
 }

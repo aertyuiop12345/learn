@@ -3,9 +3,8 @@ import { ConfigService } from '@nestjs/config'
 import { SchedulerRegistry } from '@nestjs/schedule'
 import { SyncService } from './sync.service'
 import { DigiformaClient } from '../digiforma/digiforma.client'
-import { PrismaService } from '../prisma/prisma.service'
 import { CacheService } from '../common/cache/cache.service'
-import { DirectusMirrorService } from '../directus/directus.mirror.service'
+import { DirectusCatalogService } from '../directus/directus.catalog.service'
 
 const sampleProgram = {
   id: 'prog-001',
@@ -20,35 +19,24 @@ const sampleProgram = {
   costsInter: [{ cost: 1800, vat: 20, type: 'inter' }]
 }
 
-function mockPrisma() {
-  return {
-    syncRun: {
-      create: vi.fn().mockResolvedValue({ id: 1, status: 'running' }),
-      findFirst: vi.fn().mockResolvedValue({ id: 1, status: 'success' }),
-      update: vi.fn().mockResolvedValue({ id: 1 })
-    },
-    course: {
-      findUnique: vi.fn().mockResolvedValue(null),
-      create: vi.fn().mockResolvedValue({ id: 1 }),
-      update: vi.fn().mockResolvedValue({ id: 1 })
-    }
-  } as unknown as PrismaService
-}
-
 describe('SyncService', () => {
   let service: SyncService
-  let prisma: PrismaService
   let client: DigiformaClient
   let cache: CacheService
-  let mirror: DirectusMirrorService
+  let catalog: DirectusCatalogService
   let config: ConfigService
   let scheduler: { addCronJob: ReturnType<typeof vi.fn> }
 
   beforeEach(async () => {
-    prisma = mockPrisma()
     client = { fetchAllPrograms: vi.fn() } as unknown as DigiformaClient
-    cache = { invalidateCatalog: vi.fn() } as unknown as CacheService
-    mirror = { upsertMany: vi.fn() } as unknown as DirectusMirrorService
+    cache = {
+      invalidateCatalog: vi.fn(),
+      setSyncRun: vi.fn(),
+      getSyncRun: vi.fn()
+    } as unknown as CacheService
+    catalog = {
+      upsertMany: vi.fn().mockResolvedValue({ inserted: 1, updated: 0 })
+    } as unknown as DirectusCatalogService
     scheduler = { addCronJob: vi.fn() }
 
     const module: TestingModule = await Test.createTestingModule({
@@ -59,9 +47,8 @@ describe('SyncService', () => {
           useValue: { get: vi.fn((key: string) => (key === 'SYNC_CRON' ? '0 * * * *' : undefined)) }
         },
         { provide: DigiformaClient, useValue: client },
-        { provide: PrismaService, useValue: prisma },
         { provide: CacheService, useValue: cache },
-        { provide: DirectusMirrorService, useValue: mirror },
+        { provide: DirectusCatalogService, useValue: catalog },
         { provide: SchedulerRegistry, useValue: scheduler }
       ]
     }).compile()
@@ -90,14 +77,13 @@ describe('SyncService', () => {
 
     await service.run()
 
-    expect(prisma.syncRun.create).toHaveBeenCalledWith({ data: { status: 'running' } })
-    expect(prisma.course.create).toHaveBeenCalled()
-    expect(prisma.syncRun.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ status: 'success' })
-      })
+    expect(catalog.upsertMany).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ digiforma_id: 'prog-001' })])
     )
     expect(cache.invalidateCatalog).toHaveBeenCalled()
+    expect(cache.setSyncRun).toHaveBeenLastCalledWith(
+      expect.objectContaining({ status: 'success', inserted: 1, updated: 0 })
+    )
   })
 
   it('falls back to fixture when Digiforma fails', async () => {
@@ -105,7 +91,7 @@ describe('SyncService', () => {
 
     await service.run()
 
-    expect(prisma.course.create).toHaveBeenCalled()
+    expect(catalog.upsertMany).toHaveBeenCalled()
   })
 
   it('throws Digiforma errors in production instead of falling back', async () => {
@@ -117,17 +103,6 @@ describe('SyncService', () => {
     await expect(service.run()).rejects.toThrow('network')
   })
 
-  it('updates existing courses', async () => {
-    vi.mocked(client.fetchAllPrograms).mockResolvedValue([sampleProgram])
-    vi.mocked(prisma.course.findUnique).mockResolvedValue({ id: 1 } as unknown as Awaited<
-      ReturnType<PrismaService['course']['findUnique']>
-    >)
-
-    await service.run()
-
-    expect(prisma.course.update).toHaveBeenCalled()
-  })
-
   it('logs individual program errors without failing the run', async () => {
     vi.mocked(client.fetchAllPrograms).mockResolvedValue([
       { id: 'prog-001' } as typeof sampleProgram,
@@ -136,38 +111,27 @@ describe('SyncService', () => {
 
     await service.run()
 
-    expect(prisma.syncRun.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ status: 'success', failed: 1 })
-      })
+    expect(cache.setSyncRun).toHaveBeenLastCalledWith(
+      expect.objectContaining({ status: 'success', failed: 1 })
     )
   })
 
   it('returns the latest sync run', async () => {
+    const run = { status: 'success' } as Awaited<ReturnType<SyncService['getLatestRun']>>
+    vi.mocked(cache.getSyncRun).mockResolvedValue(run)
+
     const latest = await service.getLatestRun()
-    expect(prisma.syncRun.findFirst).toHaveBeenCalledWith({ orderBy: { startedAt: 'desc' } })
-    expect(latest).toEqual({ id: 1, status: 'success' })
+
+    expect(cache.getSyncRun).toHaveBeenCalled()
+    expect(latest).toEqual(run)
   })
 
-  it('pushes synced courses to Directus mirror', async () => {
+  it('records a failed sync run when Directus upsert fails', async () => {
     vi.mocked(client.fetchAllPrograms).mockResolvedValue([sampleProgram])
+    vi.mocked(catalog.upsertMany).mockRejectedValue(new Error('directus down'))
 
-    await service.run()
+    await expect(service.run()).rejects.toThrow('directus down')
 
-    expect(mirror.upsertMany).toHaveBeenCalledWith(
-      expect.arrayContaining([expect.objectContaining({ digiformaId: 'prog-001' })])
-    )
-  })
-
-  it('does not fail sync when mirror push fails', async () => {
-    vi.mocked(client.fetchAllPrograms).mockResolvedValue([sampleProgram])
-    vi.mocked(mirror.upsertMany).mockRejectedValue(new Error('mirror down'))
-
-    await service.run()
-
-    expect(cache.invalidateCatalog).toHaveBeenCalled()
-    expect(prisma.syncRun.update).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ status: 'success' }) })
-    )
+    expect(cache.setSyncRun).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'failed' }))
   })
 })

@@ -36,6 +36,11 @@ export default defineNuxtConfig({
     componentDir: '@/components/ui'
   },
   components: [{ path: '~/components', pathPrefix: false }],
+  routeRules: {
+    '/': { swr: 600 },
+    '/formations/**': { swr: 600 },
+    '/centres/**': { swr: 600 }
+  },
   runtimeConfig: {
     apiBase,
     public: {

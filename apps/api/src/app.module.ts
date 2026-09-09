@@ -5,7 +5,6 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis'
 import { scryptSync } from 'node:crypto'
 import { HealthController } from './health/health.controller'
-import { PrismaModule } from './prisma/prisma.module'
 import { DigiformaModule } from './digiforma/digiforma.module'
 import { SyncModule } from './sync/sync.module'
 import { CatalogModule } from './catalog/catalog.module'
@@ -54,7 +53,6 @@ function isAdminRoute(context: ExecutionContext): boolean {
         }
       }
     }),
-    PrismaModule,
     CacheModule,
     DigiformaModule,
     SyncModule,
