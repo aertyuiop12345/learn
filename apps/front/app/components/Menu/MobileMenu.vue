@@ -280,8 +280,8 @@ const dialogEl = ref<HTMLDialogElement>()
 const closeBtn = ref<HTMLButtonElement>()
 let previousFocus: Element | null = null
 
-const familles = await useMenuFamilles()
-const { regions, centresParRegion } = await useMenuCentres()
+const familles = useMenuFamilles()
+const { regions, centresParRegion } = useMenuCentres()
 
 function centresForRegion(label: string) {
   return centresParRegion.value.get(label) ?? []

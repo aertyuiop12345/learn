@@ -6,12 +6,12 @@ import MobileMenu from '~/components/Menu/MobileMenu.vue'
 vi.mock('~/composables/useMenuData', async () => {
   const { ref } = await import('vue')
   return {
-    useMenuFamilles: async () =>
+    useMenuFamilles: () =>
       ref([
         { slug: 'management', label: 'Management', count: 12 },
         { slug: 'securite-prevention', label: 'Sécurité & prévention', count: 32 }
       ]),
-    useMenuCentres: async () => ({
+    useMenuCentres: () => ({
       regions: ref([{ slug: 'ile-de-france', label: 'Île-de-France', count: 2 }]),
       centresParRegion: ref(
         new Map([
@@ -30,7 +30,7 @@ vi.mock('~/composables/useMenuData', async () => {
         ])
       )
     }),
-    useMenuFormationsALaUne: async () => ref([])
+    useMenuFormationsALaUne: () => ref([])
   }
 })
 

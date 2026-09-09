@@ -94,7 +94,7 @@ import { useMenuCentres } from '~/composables/useMenuData'
 
 const emit = defineEmits<{ close: [] }>()
 
-const { regions, centresParRegion } = await useMenuCentres()
+const { regions, centresParRegion } = useMenuCentres()
 
 const selectedRegion = ref(regions.value?.[0]?.slug ?? '')
 const searchQuery = ref('')

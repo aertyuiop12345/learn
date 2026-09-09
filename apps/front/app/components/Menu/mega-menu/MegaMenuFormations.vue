@@ -84,8 +84,8 @@ import { useMenuFamilles, useMenuFormationsALaUne } from '~/composables/useMenuD
 
 defineEmits<{ close: [] }>()
 
-const familles = await useMenuFamilles()
-const formationsALaUne = await useMenuFormationsALaUne()
+const familles = useMenuFamilles()
+const formationsALaUne = useMenuFormationsALaUne()
 
 const selectedFamille = ref(familles.value?.[0]?.slug ?? '')
 

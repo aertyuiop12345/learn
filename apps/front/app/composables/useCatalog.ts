@@ -156,6 +156,7 @@ export type CatalogApiResult = Paginated<CourseListItem>
 
 export async function useCatalog(query: MaybeRefOrGetter<CatalogQuery>) {
   const config = useRuntimeConfig()
+  const apiBase = import.meta.server ? config.apiBase : config.public.apiBase
 
   // Clé dérivée de la requête : deux pages (catalogue, famille, fiche) ne
   // doivent pas partager le cache useAsyncData, sinon navigation client =
@@ -164,7 +165,7 @@ export async function useCatalog(query: MaybeRefOrGetter<CatalogQuery>) {
     `catalog:${JSON.stringify(buildApiQuery(toValue(query)))}`,
     async () => {
       try {
-        return await $fetch<CatalogApiResult>(`${config.public.apiBase}/courses`, {
+        return await $fetch<CatalogApiResult>(`${apiBase}/courses`, {
           query: buildApiQuery(toValue(query))
         })
       } catch (err) {

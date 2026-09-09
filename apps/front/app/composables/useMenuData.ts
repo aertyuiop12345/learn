@@ -4,6 +4,7 @@
 // Sources : API catalogue (/families, /courses) + Directus (centres).
 // Dégradation gracieuse : [] en cas d'erreur, log serveur.
 
+import { readItems } from '@directus/sdk'
 import type {
   Centre,
   CourseListItem,
@@ -57,45 +58,56 @@ function slugify(input: string): string {
 
 function humanizeSlug(slug: string): string {
   if (!slug) return ''
-  return slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+  return slug.replaceAll('-', ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
 /** Familles depuis le catalogue API (`/families`) + noms Directus — max MAX_FAMILLES. */
-export async function useMenuFamilles() {
+export function useMenuFamilles() {
   const config = useRuntimeConfig()
+  const apiBase = import.meta.server ? config.apiBase : config.public.apiBase
+  const directus = useDirectusClient()
 
-  const names = await useDirectusList<FamilleFormation>(
-    'familles_formation',
-    'menu-familles-names',
-    {
-      fields: ['slug', 'name'],
-      filter: { status: { _eq: 'published' } },
-      limit: -1
-    }
-  )
-
-  const nameBySlug = computed(() => {
-    const map = new Map<string, string>()
-    for (const family of (names.value ?? []) as FamilleFormation[]) {
-      if (family.slug && family.name) map.set(family.slug, family.name)
-    }
-    return map
-  })
-
-  const { data } = await useAsyncData<MenuFamille[]>('menu-familles', async () => {
-    const counts = await $fetch<FamilyWithCount[]>(`${config.public.apiBase}/families`).catch(
-      (error: unknown) => {
+  const { data } = useAsyncData<MenuFamille[]>('menu-familles', async () => {
+    const [names, counts] = await Promise.all([
+      directus
+        .request<FamilleFormation[]>(
+          readItems('familles_formation', {
+            fields: ['slug', 'name'],
+            filter: { status: { _eq: 'published' } },
+            limit: -1
+          })
+        )
+        .catch((error: unknown) => {
+          if (import.meta.server) {
+            logServerError('[useMenuFamilles] familles_formation fetch failed:', error)
+          }
+          return [] as FamilleFormation[]
+        }),
+      $fetch<FamilyWithCount[]>(`${apiBase}/families`).catch((error: unknown) => {
         if (import.meta.server) {
           logServerError('[useMenuFamilles] /families fetch failed:', error)
         }
-        return [] as FamilyWithCount[]
-      }
-    )
+        return null as FamilyWithCount[] | null
+      })
+    ])
 
-    return counts
+    const nameBySlug = new Map<string, string>()
+    for (const family of names) {
+      if (family.slug && family.name) nameBySlug.set(family.slug, family.name)
+    }
+
+    // Si /families échoue mais Directus a des noms, on affiche quand même les familles (count = 0).
+    if (counts === null && nameBySlug.size > 0) {
+      return [...nameBySlug.entries()]
+        .map(([slug, label]) => ({ slug, label, count: 0 }))
+        .sort((a, b) => a.label.localeCompare(b.label))
+        .slice(0, MAX_FAMILLES)
+    }
+
+    return (counts ?? [])
       .map((family) => ({
         slug: family.slug,
-        label: nameBySlug.value.get(family.slug) ?? humanizeSlug(family.slug),
+        label: nameBySlug.get(family.slug) ?? humanizeSlug(family.slug),
         count: family.count
       }))
       .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
@@ -106,8 +118,8 @@ export async function useMenuFamilles() {
 }
 
 /** Centres publiés, groupés par région pour les menus. */
-export async function useMenuCentres() {
-  const centres = await useDirectusList<Centre>('centres', 'menu-centres', {
+export function useMenuCentres() {
+  const centres = useDirectusList<Centre>('centres', 'menu-centres', {
     fields: ['slug', 'name', 'city', 'department', 'region'],
     filter: { status: { _eq: 'published' } },
     limit: -1,
@@ -153,12 +165,13 @@ export async function useMenuCentres() {
 }
 
 /** Six dernières formations publiées — colonne « À la une » du méga-menu. */
-export async function useMenuFormationsALaUne() {
+export function useMenuFormationsALaUne() {
   const config = useRuntimeConfig()
+  const apiBase = import.meta.server ? config.apiBase : config.public.apiBase
 
-  const { data } = await useAsyncData<MenuFormation[]>('menu-formations-une', async () => {
+  const { data } = useAsyncData<MenuFormation[]>('menu-formations-une', async () => {
     try {
-      const result = await $fetch<Paginated<CourseListItem>>(`${config.public.apiBase}/courses`, {
+      const result = await $fetch<Paginated<CourseListItem>>(`${apiBase}/courses`, {
         query: { limit: MAX_FORMATIONS_A_LA_UNE, page: 1, sort: 'updatedAt', order: 'desc' }
       })
       return result.items.map((course) => ({

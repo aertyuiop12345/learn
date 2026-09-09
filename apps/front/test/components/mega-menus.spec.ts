@@ -12,13 +12,13 @@ vi.stubGlobal('navigateTo', navigateMock)
 vi.mock('~/composables/useMenuData', async () => {
   const { ref } = await import('vue')
   return {
-    useMenuFamilles: async () =>
+    useMenuFamilles: () =>
       ref([
         { slug: 'securite-prevention', label: 'Sécurité & prévention', count: 32 },
         { slug: 'management', label: 'Management', count: 12 },
         { slug: 'caces-conduite-engins', label: 'CACES & conduite d’engins', count: 58 }
       ]),
-    useMenuFormationsALaUne: async () =>
+    useMenuFormationsALaUne: () =>
       ref([
         {
           slug: 'caces-r489',
@@ -26,7 +26,7 @@ vi.mock('~/composables/useMenuData', async () => {
           to: '/formations/caces-conduite-engins/caces-r489'
         }
       ]),
-    useMenuCentres: async () => ({
+    useMenuCentres: () => ({
       regions: ref([
         { slug: 'ile-de-france', label: 'Île-de-France', count: 2 },
         { slug: 'occitanie', label: 'Occitanie', count: 1 }

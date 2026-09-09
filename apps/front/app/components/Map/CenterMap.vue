@@ -2,7 +2,7 @@
   <div
     class="relative isolate flex flex-col overflow-hidden bg-surface-alt"
     :class="[
-      mode === 'single' ? 'h-64 rounded-lg border border-rule bg-paper' : 'h-full min-h-full',
+      mode === 'single' ? 'h-64 rounded-md border border-rule bg-paper' : 'h-full min-h-full',
       { 'items-center justify-center': !hasVisibleCenters }
     ]"
   >

@@ -14,11 +14,28 @@ import type { Request, Response } from 'express'
 import { Readable } from 'node:stream'
 
 /**
- * Préfixes Directus exposés au front — lecture seule, pas d'endpoints
- * d'administration ni de collections système.
+ * Collections Directus autorisées pour le front en lecture via le proxy.
+ * Pas d'endpoints d'administration ni de collections système.
  */
-const ALLOWED_PREFIXES = ['items/', 'assets/']
+const ALLOWED_ITEM_COLLECTIONS = new Set(['centres', 'familles_formation'])
 const UPSTREAM_TIMEOUT_MS = 10_000
+
+function isAllowedPath(pathname: string): boolean {
+  const segments = pathname.split('/').filter(Boolean)
+  if (segments.length < 2) return false
+
+  // assets/<id> — l'UUID est validé côté Directus, on s'assure juste qu'il y a un segment.
+  if (segments[0] === 'assets') {
+    return segments[1]!.length > 0 && !segments[1]!.includes('..')
+  }
+
+  // items/<collection> — on restreint explicitement pour limiter la surface d'attaque.
+  if (segments[0] === 'items') {
+    return ALLOWED_ITEM_COLLECTIONS.has(segments[1]!)
+  }
+
+  return false
+}
 
 /**
  * Proxy générique vers Directus : le front ne connaît pas Directus, toutes
@@ -47,7 +64,7 @@ export class DirectusProxyController {
     }
 
     const rawRelative = (req.originalUrl ?? '').replace(/^\/directus/, '')
-    const incoming = new URL(rawRelative, 'http://directus.invalid')
+    const incoming = new URL(rawRelative, 'https://directus.invalid')
 
     if (incoming.hostname !== 'directus.invalid') {
       throw new NotFoundException('Chemin Directus non autorisé')
@@ -58,7 +75,7 @@ export class DirectusProxyController {
       throw new NotFoundException('Chemin Directus non autorisé')
     }
 
-    if (!ALLOWED_PREFIXES.some((prefix) => incoming.pathname.startsWith(`/${prefix}`))) {
+    if (!isAllowedPath(incoming.pathname)) {
       throw new NotFoundException('Chemin Directus non autorisé')
     }
 
@@ -97,7 +114,10 @@ export class DirectusProxyController {
     }
 
     Readable.fromWeb(upstream.body as import('node:stream/web').ReadableStream)
-      .on('error', () => res.destroy())
+      .on('error', (error: Error) => {
+        this.logger.warn(error, 'Directus proxy stream error')
+        res.destroy()
+      })
       .pipe(res)
   }
 }

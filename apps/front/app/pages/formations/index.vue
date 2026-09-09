@@ -613,8 +613,9 @@ const { data: directusFamilies } = await useAsyncData<FamilleFormation[]>(
 
 const { data: familyCounts } = await useAsyncData<FamilyWithCount[]>('family-counts', async () => {
   const config = useRuntimeConfig()
+  const apiBase = import.meta.server ? config.apiBase : config.public.apiBase
   try {
-    return await $fetch<FamilyWithCount[]>(`${config.public.apiBase}/families`)
+    return await $fetch<FamilyWithCount[]>(`${apiBase}/families`)
   } catch (error) {
     if (import.meta.server) {
       logServerError('[formations/index] family counts fetch failed:', error)
