@@ -9,6 +9,9 @@ concurrency:
   group: ci-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
+permissions:
+  contents: read
+
 env:
   TURBO_CACHE_DIR: .turbo/cache
 
