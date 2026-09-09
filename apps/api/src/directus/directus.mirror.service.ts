@@ -43,12 +43,10 @@ export class DirectusMirrorService {
   constructor(config: ConfigService) {
     // Token facultatif : l'API doit démarrer sans accès Directus (dev,
     // environnements sans sync). Le miroir est alors simplement désactivé.
-    this.token = config.get<string>('DIRECTUS_SYNC_TOKEN') ?? ''
+    this.token = config.get<string>('DIRECTUS_TOKEN') ?? ''
     this.baseUrl = config.get<string>('DIRECTUS_INTERNAL_URL') ?? ''
     if (!this.token || !this.baseUrl) {
-      this.logger.warn(
-        'DIRECTUS_SYNC_TOKEN or DIRECTUS_INTERNAL_URL missing: Directus mirror disabled'
-      )
+      this.logger.warn('DIRECTUS_TOKEN or DIRECTUS_INTERNAL_URL missing: Directus mirror disabled')
     }
   }
 
@@ -85,9 +83,7 @@ export class DirectusMirrorService {
     // applyFamilies interpréterait ça comme « toutes les affectations ont
     // été retirées » et viderait family_slug.
     if (!this.enabled) {
-      throw new Error(
-        'Directus mirror disabled: missing DIRECTUS_SYNC_TOKEN or DIRECTUS_INTERNAL_URL'
-      )
+      throw new Error('Directus mirror disabled: missing DIRECTUS_TOKEN or DIRECTUS_INTERNAL_URL')
     }
 
     const map = new Map<string, string>()
