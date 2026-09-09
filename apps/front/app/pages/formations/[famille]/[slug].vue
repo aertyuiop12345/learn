@@ -512,7 +512,9 @@ const {
   refresh
 } = await useAsyncData<Course | null>(`course-${famille}-${slug}`, async () => {
   try {
-    const result = await $fetch<Course>(`${config.public.apiBase}/courses/${famille}/${slug}`)
+    const result = await $fetch<Course>(
+      `${import.meta.server ? config.apiBase : config.public.apiBase}/courses/${famille}/${slug}`
+    )
     return result
   } catch (error: unknown) {
     if (

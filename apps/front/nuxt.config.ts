@@ -4,11 +4,11 @@ import { typography } from '@learnup/ui'
 
 const apiBase = process.env.NUXT_API_BASE ?? 'http://localhost:3001'
 // Deux valeurs distinctes : le rendu SSR tourne dans le conteneur front et
-// doit joindre Directus via le nom de service Docker (`directus`), alors que
-// le navigateur (hydratation, navigation client) ne connaît que l'URL
-// publique. Sans Docker, les deux valeurs par défaut sont identiques.
-const directusUrlServer = process.env.NUXT_DIRECTUS_URL ?? 'http://localhost:8055'
-const directusUrlPublic = process.env.NUXT_PUBLIC_DIRECTUS_URL ?? 'http://localhost:8055'
+// doit joindre l'API via le nom de service Docker (`api`), alors que le
+// navigateur (hydratation, navigation client) ne connaît que l'URL publique.
+// Directus n'est jamais contacté directement : l'API expose un proxy
+// `/directus` (apps/api/src/directus).
+const publicApiBase = process.env.NUXT_PUBLIC_API_BASE ?? 'http://localhost:3001'
 const siteUrl = process.env.NUXT_PUBLIC_SITE_URL ?? 'https://learnup.fr'
 
 export default defineNuxtConfig({
@@ -37,10 +37,9 @@ export default defineNuxtConfig({
   },
   components: [{ path: '~/components', pathPrefix: false }],
   runtimeConfig: {
-    directusUrl: directusUrlServer,
+    apiBase,
     public: {
-      apiBase,
-      directusUrl: directusUrlPublic,
+      apiBase: publicApiBase,
       siteUrl
     }
   }

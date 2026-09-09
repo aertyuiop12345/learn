@@ -13,7 +13,7 @@ Lire d'abord `AGENTS.md` à la racine.
 
 ## Composables existants
 
-- `useDirectusClient()` : client Directus (URL distincte selon SSR/navigateur).
+- `useDirectusClient()` : client Directus pointant sur le proxy `/directus` de l'API NestJS (le front ne contacte jamais Directus directement).
 - `useDirectusList<T>(collection, cacheKey, query?)` : liste Directus avec dégradation gracieuse (`[]` en cas d'erreur, log serveur).
 - `useDirectusItemBySlug<T>(collection, slug, cacheKey)` : fiche par slug.
 - `useContentSeo(source, fallbackTitle)` : met à jour `useHead` depuis les champs SEO Directus.

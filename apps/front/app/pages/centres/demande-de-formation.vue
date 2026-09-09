@@ -352,7 +352,7 @@ const formationData =
         async () => {
           try {
             return await $fetch<Course>(
-              `${config.public.apiBase}/courses/${familleSlug.value}/${formationSlug.value}`
+              `${import.meta.server ? config.apiBase : config.public.apiBase}/courses/${familleSlug.value}/${formationSlug.value}`
             )
           } catch (err) {
             if (import.meta.server) {

@@ -145,7 +145,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/learnup_api
       REDIS_URL: redis://redis:6379
       DIRECTUS_INTERNAL_URL: http://directus:8055
-      DIRECTUS_SYNC_TOKEN: ${DIRECTUS_SYNC_TOKEN}
+      DIRECTUS_TOKEN: ${DIRECTUS_TOKEN}
     depends_on:
       postgres:
         condition: service_healthy
@@ -165,8 +165,6 @@ services:
       NODE_ENV: production
       NUXT_API_BASE: http://api:3001
       NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE}
-      NUXT_DIRECTUS_URL: http://directus:8055
-      NUXT_PUBLIC_DIRECTUS_URL: ${NUXT_PUBLIC_DIRECTUS_URL}
     ports:
       - '3000:3000'
     depends_on:

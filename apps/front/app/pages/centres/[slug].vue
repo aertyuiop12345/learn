@@ -138,7 +138,7 @@
                     Qualité et certifications
                   </h2>
                 </CardHeader>
-                <CardContent class="p-lg pt-md pb-0">
+                <CardContent class="p-lg pt-md">
                   <div class="flex gap-sm">
                     <span
                       class="flex h-control-sm w-control-sm shrink-0 items-center justify-center rounded-sm bg-surface-alt"

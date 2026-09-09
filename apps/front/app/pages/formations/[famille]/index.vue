@@ -446,10 +446,12 @@ const formations = computed<FormationItem[]>(
 const resultCount = computed(() => catalog.data.value?.total ?? 0)
 
 // Visuel éditorial de la famille — champ `image` (fichier Directus)
-// résolu via l'endpoint /assets. Repli : placeholder avec le nom.
+// résolu via le proxy /directus/assets de l'API. Repli : placeholder avec le nom.
 const config = useRuntimeConfig()
 const heroImage = computed(() =>
-  familleData.value?.image ? `${config.public.directusUrl}/assets/${familleData.value.image}` : null
+  familleData.value?.image
+    ? `${config.public.apiBase}/directus/assets/${familleData.value.image}`
+    : null
 )
 
 // Tags du hero : modalités présentes dans la famille + badge sessions

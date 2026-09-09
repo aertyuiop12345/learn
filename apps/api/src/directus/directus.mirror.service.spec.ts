@@ -21,7 +21,7 @@ describe('DirectusMirrorService', () => {
         {
           provide: ConfigService,
           useValue: {
-            get: (key: string) => (key === 'DIRECTUS_SYNC_TOKEN' ? 'token' : 'http://directus:8055')
+            get: (key: string) => (key === 'DIRECTUS_TOKEN' ? 'token' : 'http://directus:8055')
           }
         }
       ]
