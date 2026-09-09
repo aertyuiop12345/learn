@@ -5,7 +5,19 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".output/**", ".nuxt/**"]
+      "outputs": ["dist/**", ".output/**", ".nuxt/**", ".vercel/output/**", "!.output/cache/**"]
+    },
+    "@learnup/front#build": {
+      "dependsOn": ["^build"],
+      "outputs": [".output/**", "!.output/cache/**"]
+    },
+    "@learnup/api#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "@learnup/presence#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
     },
     "@learnup/ui#build": {
       "outputs": []
