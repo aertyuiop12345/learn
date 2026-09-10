@@ -69,7 +69,7 @@ export function permissionsFor(roleName) {
 // tout GET est 403 (deny-by-default). Statut "published" uniquement sur les
 // collections qui ont un champ status ; le reste (page_blocks, stats,
 // directus_files) n'en a pas, lecture non filtrée.
-const PUBLIC_STATUS_FILTERED = ['centres', 'familles_formation', 'articles', 'pages']
+const PUBLIC_STATUS_FILTERED = ['centres', 'familles_formation', 'articles', 'pages', 'formations']
 const PUBLIC_UNRESTRICTED = ['page_blocks', 'stats', 'directus_files']
 
 /** @returns {Array<{collection: string, action: string, permissions?: object}>} */

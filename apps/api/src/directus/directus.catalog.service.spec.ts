@@ -1,14 +1,67 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { ConfigService } from '@nestjs/config'
-import { DirectusMirrorService, type MirrorCourse } from './directus.mirror.service'
+import { DirectusCatalogService } from './directus.catalog.service'
+import type { FormationDirectusPayload } from '../digiforma/digiforma.mapper'
 
-const sampleCourses: MirrorCourse[] = [
-  { digiformaId: 'prog-001', slug: 'pilotage', title: 'Pilotage', categoryName: 'Management' },
-  { digiformaId: 'prog-002', slug: 'securite', title: 'Sécurité', categoryName: null }
+const samplePayloads: FormationDirectusPayload[] = [
+  {
+    digiforma_id: 'prog-001',
+    slug: 'pilotage',
+    title: 'Pilotage',
+    description: null,
+    duration_days: 3,
+    duration_hours: 21,
+    price: 1500,
+    cpf: true,
+    cpf_code: null,
+    certification: null,
+    certifier_name: null,
+    category_name: 'Management',
+    center_slug: null,
+    center_slugs: [],
+    modalities: [],
+    sessions: null,
+    locations_text: null,
+    blocks: null,
+    image_url: null,
+    generated_program_url: null,
+    status: 'published',
+    seo_title: 'Pilotage',
+    seo_description: null,
+    seo_canonical: null,
+    raw: {}
+  },
+  {
+    digiforma_id: 'prog-002',
+    slug: 'securite',
+    title: 'Sécurité',
+    description: null,
+    duration_days: null,
+    duration_hours: null,
+    price: null,
+    cpf: false,
+    cpf_code: null,
+    certification: null,
+    certifier_name: null,
+    category_name: null,
+    center_slug: null,
+    center_slugs: [],
+    modalities: [],
+    sessions: null,
+    locations_text: null,
+    blocks: null,
+    image_url: null,
+    generated_program_url: null,
+    status: 'published',
+    seo_title: 'Sécurité',
+    seo_description: null,
+    seo_canonical: null,
+    raw: {}
+  }
 ]
 
-describe('DirectusMirrorService', () => {
-  let service: DirectusMirrorService
+describe('DirectusCatalogService', () => {
+  let service: DirectusCatalogService
   let fetch: ReturnType<typeof vi.fn>
 
   beforeEach(async () => {
@@ -17,7 +70,7 @@ describe('DirectusMirrorService', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        DirectusMirrorService,
+        DirectusCatalogService,
         {
           provide: ConfigService,
           useValue: {
@@ -27,7 +80,7 @@ describe('DirectusMirrorService', () => {
       ]
     }).compile()
 
-    service = module.get<DirectusMirrorService>(DirectusMirrorService)
+    service = module.get<DirectusCatalogService>(DirectusCatalogService)
   })
 
   it('should be defined', () => {
@@ -45,7 +98,7 @@ describe('DirectusMirrorService', () => {
       .mockResolvedValueOnce(new Response(null, { status: 204 }))
       .mockResolvedValueOnce(new Response(null, { status: 204 }))
 
-    await service.upsertMany(sampleCourses)
+    await service.upsertMany(samplePayloads)
 
     const createCall = fetch.mock.calls.find((call) => call[1]?.method === 'POST')
     expect(createCall).toBeDefined()
@@ -59,44 +112,10 @@ describe('DirectusMirrorService', () => {
     expect(patchCall[0]).toBe('http://directus:8055/items/formations/1')
   })
 
-  it('does not send famille field when updating', async () => {
-    fetch
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ data: [{ id: 1, digiforma_id: 'prog-001' }] }), {
-          status: 200
-        })
-      )
-      .mockResolvedValueOnce(new Response(null, { status: 204 }))
-
-    await service.upsertMany([sampleCourses[0]])
-
-    const patchBody = JSON.parse(fetch.mock.calls[1][1].body)
-    expect(patchBody).not.toHaveProperty('famille')
-  })
-
-  it('logs and resolves when Directus is down', async () => {
+  it('throws when Directus is down', async () => {
     fetch.mockRejectedValue(new Error('network'))
 
-    await expect(service.upsertMany(sampleCourses)).resolves.toBeUndefined()
-  })
-
-  it('fetches family assignments', async () => {
-    fetch.mockResolvedValueOnce(
-      new Response(
-        JSON.stringify({
-          data: [
-            { digiforma_id: 'prog-001', famille: { slug: 'management' } },
-            { digiforma_id: 'prog-002', famille: null }
-          ]
-        }),
-        { status: 200 }
-      )
-    )
-
-    const result = await service.fetchAssignments()
-
-    expect(result.get('prog-001')).toBe('management')
-    expect(result.has('prog-002')).toBe(false)
+    await expect(service.upsertMany(samplePayloads)).rejects.toThrow('network')
   })
 
   it('retries failed requests', async () => {
@@ -105,7 +124,7 @@ describe('DirectusMirrorService', () => {
       .mockRejectedValueOnce(new Error('timeout'))
       .mockResolvedValueOnce(new Response(null, { status: 204 }))
 
-    await service.upsertMany([sampleCourses[0]])
+    await service.upsertMany([samplePayloads[0]])
 
     expect(fetch).toHaveBeenCalledTimes(3)
   })

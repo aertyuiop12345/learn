@@ -256,9 +256,10 @@ export const collections = [
   {
     collection: 'formations',
     icon: 'school',
-    note: 'Miroir lecture seule du catalogue API — les éditeurs affectent la famille.',
+    note: 'Miroir Digiforma — les éditeurs affectent la famille.',
     fields: [
       primaryKey(),
+      statusField(),
       sortField(),
       {
         field: 'digiforma_id',
@@ -277,6 +278,51 @@ export const collections = [
         meta: { interface: 'input', width: 'full', readonly: true }
       },
       {
+        field: 'description',
+        type: 'text',
+        meta: {
+          interface: 'input-rich-text-html',
+          width: 'full',
+          readonly: true,
+          note: 'Description Digiforma'
+        }
+      },
+      {
+        field: 'duration_days',
+        type: 'integer',
+        meta: { interface: 'input', width: 'half', readonly: true }
+      },
+      {
+        field: 'duration_hours',
+        type: 'integer',
+        meta: { interface: 'input', width: 'half', readonly: true }
+      },
+      {
+        field: 'price',
+        type: 'float',
+        meta: { interface: 'input', width: 'half', readonly: true }
+      },
+      {
+        field: 'cpf',
+        type: 'boolean',
+        meta: { interface: 'boolean', width: 'half', readonly: true }
+      },
+      {
+        field: 'cpf_code',
+        type: 'string',
+        meta: { interface: 'input', width: 'half', readonly: true }
+      },
+      {
+        field: 'certification',
+        type: 'string',
+        meta: { interface: 'input', width: 'half', readonly: true }
+      },
+      {
+        field: 'certifier_name',
+        type: 'string',
+        meta: { interface: 'input', width: 'half', readonly: true }
+      },
+      {
         field: 'category_name',
         type: 'string',
         meta: {
@@ -284,6 +330,94 @@ export const collections = [
           width: 'half',
           readonly: true,
           note: 'Catégorie Digiforma brute'
+        }
+      },
+      {
+        field: 'modalities',
+        type: 'json',
+        meta: { interface: 'tags', width: 'full', readonly: true }
+      },
+      {
+        field: 'center_slug',
+        type: 'string',
+        meta: { interface: 'input', width: 'half', readonly: true }
+      },
+      {
+        field: 'center_slugs',
+        type: 'json',
+        meta: { interface: 'tags', width: 'full', readonly: true }
+      },
+      {
+        field: 'sessions',
+        type: 'json',
+        meta: {
+          interface: 'input-code',
+          width: 'full',
+          readonly: true,
+          note: 'Sessions JSON'
+        }
+      },
+      {
+        field: 'locations_text',
+        type: 'text',
+        meta: {
+          interface: 'input-multiline',
+          width: 'full',
+          readonly: true,
+          note: 'Texte localisations pour recherche'
+        }
+      },
+      {
+        field: 'blocks',
+        type: 'json',
+        meta: {
+          interface: 'input-code',
+          width: 'full',
+          readonly: true,
+          note: 'Blocs pédagogiques JSON'
+        }
+      },
+      {
+        field: 'image_url',
+        type: 'string',
+        meta: { interface: 'input', width: 'full', readonly: true }
+      },
+      {
+        field: 'generated_program_url',
+        type: 'string',
+        meta: { interface: 'input', width: 'full', readonly: true }
+      },
+      ...seoFields(),
+      {
+        field: 'raw',
+        type: 'json',
+        meta: {
+          interface: 'input-code',
+          width: 'full',
+          readonly: true,
+          note: 'Payload Digiforma brut'
+        }
+      },
+      {
+        field: 'created_at',
+        type: 'timestamp',
+        meta: {
+          special: ['date-created'],
+          interface: 'datetime',
+          width: 'half',
+          readonly: true,
+          hidden: true
+        }
+      },
+      {
+        field: 'updated_at',
+        type: 'timestamp',
+        meta: {
+          special: ['date-updated'],
+          interface: 'datetime',
+          width: 'half',
+          readonly: true,
+          hidden: true
         }
       }
       // famille = SEUL champ éditable (relation M2O, voir relations)

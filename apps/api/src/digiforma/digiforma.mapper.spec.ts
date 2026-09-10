@@ -28,19 +28,20 @@ describe('mapProgramToCourse', () => {
   it('maps a complete program', () => {
     const course = mapProgramToCourse(program)
 
-    expect(course.digiformaId).toBe('prog-001')
+    expect(course.digiforma_id).toBe('prog-001')
     expect(course.slug).toBe('pilotage-de-projet')
     expect(course.title).toBe('Pilotage de projet')
     expect(course.description).toBe('Apprendre à piloter.')
-    expect(course.durationDays).toBe(3)
-    expect(course.durationHours).toBe(21)
+    expect(course.duration_days).toBe(3)
+    expect(course.duration_hours).toBe(21)
     expect(course.price).toBe(1500)
     expect(course.cpf).toBe(true)
     expect(course.certification).toBe('Certificat')
-    expect(course.category).toBe('Management & RH')
-    expect(course.familySlug).toBe('management-rh')
-    expect(course.imageUrl).toBe('https://example.com/image.jpg')
+    expect(course.category_name).toBe('Management & RH')
+    expect(course.image_url).toBe('https://example.com/image.jpg')
     expect(course.status).toBe('published')
+    expect(course.seo_title).toBe('Pilotage de projet')
+    expect(course.seo_description).toBe('Apprendre à piloter.')
     expect(course.raw).toEqual(program)
   })
 
@@ -51,14 +52,15 @@ describe('mapProgramToCourse', () => {
 
   it('rounds fractional durations', () => {
     const course = mapProgramToCourse({ ...program, durationInDays: 2.5, durationInHours: 17.5 })
-    expect(course.durationDays).toBe(3)
-    expect(course.durationHours).toBe(18)
+    expect(course.duration_days).toBe(3)
+    expect(course.duration_hours).toBe(18)
   })
 
-  it('returns null family slug when category is missing', () => {
-    const course = mapProgramToCourse({ ...program, category: null })
-    expect(course.familySlug).toBeNull()
-    expect(course.category).toBeNull()
+  it('returns null category and center when category and sessions are missing', () => {
+    const course = mapProgramToCourse({ ...program, category: null, sessions: null })
+    expect(course.category_name).toBeNull()
+    expect(course.center_slug).toBeNull()
+    expect(course.center_slugs).toEqual([])
   })
 
   it('maps sessions, modalities, centre slugs and location text', () => {
@@ -93,10 +95,10 @@ describe('mapProgramToCourse', () => {
     })
 
     expect(course.modalities).toEqual(expect.arrayContaining(['presentiel', 'distanciel', 'inter']))
-    expect(course.centerSlugs).toEqual(['creteil'])
-    expect(course.centerSlug).toBe('creteil')
-    expect(course.locationsText).toContain('Créteil')
-    expect(course.locationsText).toContain('Val-de-Marne')
+    expect(course.center_slugs).toEqual(['creteil'])
+    expect(course.center_slug).toBe('creteil')
+    expect(course.locations_text).toContain('Créteil')
+    expect(course.locations_text).toContain('Val-de-Marne')
     expect(course.sessions).toHaveLength(2)
   })
 
@@ -113,20 +115,18 @@ describe('mapProgramToCourse', () => {
     })
 
     expect(course.modalities).toEqual(['presentiel'])
-    expect(course.centerSlugs).toEqual(['lyon', 'paris'])
-    expect(course.centerSlug).toBe('lyon')
-    expect(course.locationsText).toContain('Lyon')
-    expect(course.locationsText).toContain('Paris')
+    expect(course.center_slugs).toEqual(['lyon', 'paris'])
+    expect(course.center_slug).toBe('lyon')
+    expect(course.locations_text).toContain('Lyon')
+    expect(course.locations_text).toContain('Paris')
   })
 
   it('returns null centre/location data when sessions are absent', () => {
     const course = mapProgramToCourse({ ...program, sessions: null })
 
-    expect(course.centerSlugs).toEqual([])
-    expect(course.centerSlug).toBeNull()
-    expect(course.locationsText).toBeNull()
-    // toJsonValue produit le marqueur JsonNull (structuredClone le sérialise en objet vide)
-    expect(course.sessions).not.toBeInstanceOf(Array)
-    expect(course.sessions).toEqual({})
+    expect(course.center_slugs).toEqual([])
+    expect(course.center_slug).toBeNull()
+    expect(course.locations_text).toBeNull()
+    expect(course.sessions).toBeNull()
   })
 })

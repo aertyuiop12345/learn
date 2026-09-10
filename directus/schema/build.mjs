@@ -238,7 +238,9 @@ async function main() {
   log('Schéma v1 prêt.')
 }
 
-main().catch((error) => {
-  logError('Build schema échoué :', error.message)
+try {
+  await main()
+} catch (error) {
+  logError('Build schema échoué :', error instanceof Error ? error.message : error)
   process.exitCode = 1
-})
+}

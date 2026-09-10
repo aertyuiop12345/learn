@@ -2,6 +2,16 @@ import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/commo
 import { ConfigService } from '@nestjs/config'
 import Redis from 'ioredis'
 
+export interface SyncRun {
+  status: 'running' | 'success' | 'failed'
+  startedAt: string
+  finishedAt: string | null
+  inserted: number
+  updated: number
+  failed: number
+  error: string | null
+}
+
 @Injectable()
 export class CacheService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(CacheService.name)
@@ -17,7 +27,7 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
   async onModuleInit(): Promise<void> {
     try {
       const version = await this.client.get(this.versionKey)
-      this.currentVersion = version ? parseInt(version, 10) : 0
+      this.currentVersion = version ? Number.parseInt(version, 10) : 0
     } catch (error) {
       this.logger.warn(error, 'Failed to read cache version, starting at 0')
       this.currentVersion = 0
@@ -70,6 +80,25 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
     this.currentVersion = newVersion
     await this.deleteByPattern(`catalog:v${oldVersion}:*`)
     this.logger.log(`Catalog cache invalidated, new version v${this.currentVersion}`)
+  }
+
+  async setSyncRun(run: SyncRun): Promise<void> {
+    try {
+      await this.client.setex('sync:last_run', 86_400, JSON.stringify(run))
+    } catch (error) {
+      this.logger.warn({ error, run }, 'Failed to set sync run status')
+    }
+  }
+
+  async getSyncRun(): Promise<SyncRun | null> {
+    try {
+      const value = await this.client.get('sync:last_run')
+      if (!value) return null
+      return JSON.parse(value) as SyncRun
+    } catch (error) {
+      this.logger.warn({ error }, 'Failed to get sync run status')
+      return null
+    }
   }
 
   key(path: string): string {

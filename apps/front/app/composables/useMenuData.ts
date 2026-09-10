@@ -1,7 +1,7 @@
 // composables/useMenuData.ts
 // Données des méga-menus et du menu mobile — chargées en SSR une seule fois
 // (clés useAsyncData stables → dédupliquées et embarquées dans le payload).
-// Sources : API catalogue (/families, /courses) + Directus (centres).
+// Sources : API catalogue (/families) + Directus (centres).
 // Dégradation gracieuse : [] en cas d'erreur, log serveur.
 
 import { readItems } from '@directus/sdk'
@@ -61,58 +61,68 @@ function humanizeSlug(slug: string): string {
   return slug.replaceAll('-', ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
+function getCachedData<T>(key: string, nuxtApp: ReturnType<typeof useNuxtApp>): T | undefined {
+  return nuxtApp.payload.data[key] ?? nuxtApp.static.data[key]
+}
+
 /** Familles depuis le catalogue API (`/families`) + noms Directus — max MAX_FAMILLES. */
 export function useMenuFamilles() {
   const config = useRuntimeConfig()
   const apiBase = import.meta.server ? config.apiBase : config.public.apiBase
   const directus = useDirectusClient()
 
-  const { data } = useAsyncData<MenuFamille[]>('menu-familles', async () => {
-    const [names, counts] = await Promise.all([
-      directus
-        .request<FamilleFormation[]>(
-          readItems('familles_formation', {
-            fields: ['slug', 'name'],
-            filter: { status: { _eq: 'published' } },
-            limit: -1
-          })
-        )
-        .catch((error: unknown) => {
+  const { data } = useAsyncData<MenuFamille[]>(
+    'menu-familles',
+    async () => {
+      const [names, counts] = await Promise.all([
+        directus
+          .request<FamilleFormation[]>(
+            readItems('familles_formation', {
+              fields: ['slug', 'name'],
+              filter: { status: { _eq: 'published' } },
+              limit: -1
+            })
+          )
+          .catch((error: unknown) => {
+            if (import.meta.server) {
+              logServerError('[useMenuFamilles] familles_formation fetch failed:', error)
+            }
+            return [] as FamilleFormation[]
+          }),
+        $fetch<FamilyWithCount[]>(`${apiBase}/families`).catch((error: unknown) => {
           if (import.meta.server) {
-            logServerError('[useMenuFamilles] familles_formation fetch failed:', error)
+            logServerError('[useMenuFamilles] /families fetch failed:', error)
           }
-          return [] as FamilleFormation[]
-        }),
-      $fetch<FamilyWithCount[]>(`${apiBase}/families`).catch((error: unknown) => {
-        if (import.meta.server) {
-          logServerError('[useMenuFamilles] /families fetch failed:', error)
-        }
-        return null as FamilyWithCount[] | null
-      })
-    ])
+          return null as FamilyWithCount[] | null
+        })
+      ])
 
-    const nameBySlug = new Map<string, string>()
-    for (const family of names) {
-      if (family.slug && family.name) nameBySlug.set(family.slug, family.name)
-    }
+      const nameBySlug = new Map<string, string>()
+      for (const family of names) {
+        if (family.slug && family.name) nameBySlug.set(family.slug, family.name)
+      }
 
-    // Si /families échoue mais Directus a des noms, on affiche quand même les familles (count = 0).
-    if (counts === null && nameBySlug.size > 0) {
-      return [...nameBySlug.entries()]
-        .map(([slug, label]) => ({ slug, label, count: 0 }))
-        .sort((a, b) => a.label.localeCompare(b.label))
+      // Si /families échoue mais Directus a des noms, on affiche quand même les familles (count = 0).
+      if (counts === null && nameBySlug.size > 0) {
+        return [...nameBySlug.entries()]
+          .map(([slug, label]) => ({ slug, label, count: 0 }))
+          .sort((a, b) => a.label.localeCompare(b.label))
+          .slice(0, MAX_FAMILLES)
+      }
+
+      return (counts ?? [])
+        .map((family) => ({
+          slug: family.slug,
+          label: nameBySlug.get(family.slug) ?? humanizeSlug(family.slug),
+          count: family.count
+        }))
+        .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
         .slice(0, MAX_FAMILLES)
+    },
+    {
+      getCachedData: (key, nuxtApp) => getCachedData<MenuFamille[]>(key, nuxtApp)
     }
-
-    return (counts ?? [])
-      .map((family) => ({
-        slug: family.slug,
-        label: nameBySlug.get(family.slug) ?? humanizeSlug(family.slug),
-        count: family.count
-      }))
-      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
-      .slice(0, MAX_FAMILLES)
-  })
+  )
 
   return data
 }
@@ -169,23 +179,29 @@ export function useMenuFormationsALaUne() {
   const config = useRuntimeConfig()
   const apiBase = import.meta.server ? config.apiBase : config.public.apiBase
 
-  const { data } = useAsyncData<MenuFormation[]>('menu-formations-une', async () => {
-    try {
-      const result = await $fetch<Paginated<CourseListItem>>(`${apiBase}/courses`, {
-        query: { limit: MAX_FORMATIONS_A_LA_UNE, page: 1, sort: 'updatedAt', order: 'desc' }
-      })
-      return result.items.map((course) => ({
-        slug: course.slug,
-        label: course.title,
-        to: course.familySlug ? `/formations/${course.familySlug}/${course.slug}` : '/formations'
-      }))
-    } catch (error) {
-      if (import.meta.server) {
-        logServerError('[useMenuFormationsALaUne] /courses fetch failed:', error)
+  const { data } = useAsyncData<MenuFormation[]>(
+    'menu-formations-une',
+    async () => {
+      try {
+        const result = await $fetch<Paginated<CourseListItem>>(`${apiBase}/courses`, {
+          query: { limit: MAX_FORMATIONS_A_LA_UNE, page: 1, sort: 'updatedAt', order: 'desc' }
+        })
+        return result.items.map((course) => ({
+          slug: course.slug,
+          label: course.title,
+          to: course.familySlug ? `/formations/${course.familySlug}/${course.slug}` : '/formations'
+        }))
+      } catch (error) {
+        if (import.meta.server) {
+          logServerError('[useMenuFormationsALaUne] /courses fetch failed:', error)
+        }
+        return [] as MenuFormation[]
       }
-      return [] as MenuFormation[]
+    },
+    {
+      getCachedData: (key, nuxtApp) => getCachedData<MenuFormation[]>(key, nuxtApp)
     }
-  })
+  )
 
   return data
 }
