@@ -40,6 +40,7 @@ export default defineNuxtConfig({
   routeRules: {
     '/': { swr: 600 },
     '/formations/**': { swr: 600 },
+    '/actualites/**': { swr: 600 },
     '/centres/**': { swr: 600 }
   },
   runtimeConfig: {
