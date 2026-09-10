@@ -112,6 +112,40 @@ services:
       retries: 10
       start_period: 30s
 
+  directus-init:
+    image: directus/directus:11
+    restart: 'no'
+    depends_on:
+      directus:
+        condition: service_healthy
+    environment:
+      DIRECTUS_URL: http://directus:8055
+      DIRECTUS_ADMIN_EMAIL: ${DIRECTUS_ADMIN_EMAIL}
+      DIRECTUS_ADMIN_PASSWORD: ${DIRECTUS_ADMIN_PASSWORD}
+    volumes:
+      - ./directus:/opt/directus:ro
+    entrypoint:
+      - node
+      - /opt/directus/schema/build.mjs
+
+  directus-seed:
+    image: directus/directus:11
+    profiles:
+      - seed
+    restart: 'no'
+    depends_on:
+      directus-init:
+        condition: service_completed_successfully
+    environment:
+      DIRECTUS_URL: http://directus:8055
+      DIRECTUS_ADMIN_EMAIL: ${DIRECTUS_ADMIN_EMAIL}
+      DIRECTUS_ADMIN_PASSWORD: ${DIRECTUS_ADMIN_PASSWORD}
+    volumes:
+      - ./directus:/opt/directus:ro
+    entrypoint:
+      - node
+      - /opt/directus/seed/seed.mjs
+
   api:
     build:
       context: .
@@ -131,6 +165,8 @@ services:
     depends_on:
       directus:
         condition: service_healthy
+      directus-init:
+        condition: service_completed_successfully
       redis:
         condition: service_healthy
     ports:

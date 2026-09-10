@@ -13,7 +13,7 @@ describe('toOriginMatcher', () => {
   })
 
   it('escapes regex metacharacters in the origin', () => {
-    const matcher = toOriginMatcher('https://*.example\u002Ecom') as RegExp
+    const matcher = toOriginMatcher('https://*.example.com') as RegExp // lgtm[js/incomplete-hostname-regexp]
     expect(matcher.test('https://a.example.com')).toBe(true)
     expect(matcher.test('https://a.examplexcom')).toBe(false)
   })
