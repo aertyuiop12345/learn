@@ -10,6 +10,7 @@ import {
   ServiceUnavailableException
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { SkipThrottle } from '@nestjs/throttler'
 import type { Request, Response } from 'express'
 import { Readable } from 'node:stream'
 
@@ -17,7 +18,7 @@ import { Readable } from 'node:stream'
  * Collections Directus autorisées pour le front en lecture via le proxy.
  * Pas d'endpoints d'administration ni de collections système.
  */
-const ALLOWED_ITEM_COLLECTIONS = new Set(['centres', 'familles_formation'])
+const ALLOWED_ITEM_COLLECTIONS = new Set(['articles', 'centres', 'familles_formation'])
 const UPSTREAM_TIMEOUT_MS = 10_000
 
 function isAllowedPath(pathname: string): boolean {
@@ -44,6 +45,7 @@ function isAllowedPath(pathname: string): boolean {
  * query tels quels (le SDK Directus côté front reste utilisable tel quel).
  */
 @Controller('directus')
+@SkipThrottle()
 export class DirectusProxyController {
   private readonly logger = new Logger(DirectusProxyController.name)
   private readonly baseUrl: string
