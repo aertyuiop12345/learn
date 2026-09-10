@@ -27,6 +27,8 @@ vi.mock('ioredis', () => ({
 
     quit = vi.fn().mockResolvedValue(undefined)
 
+    on = vi.fn()
+
     scanStream = vi.fn(({ match }: { match?: string }) => {
       const pattern = match ? `^${match.replace(/\*/g, '.*')}$` : '.*'
       const regex = new RegExp(pattern)
@@ -62,6 +64,7 @@ describe('CacheService', () => {
         {
           provide: ConfigService,
           useValue: {
+            get: () => 'redis://localhost:6379',
             getOrThrow: () => 'redis://localhost:6379'
           }
         }
@@ -146,5 +149,27 @@ describe('CacheService', () => {
     })
 
     await expect(service.del('courses')).resolves.toBeUndefined()
+  })
+
+  it('disables the cache when REDIS_URL is missing', async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        CacheService,
+        {
+          provide: ConfigService,
+          useValue: { get: () => undefined }
+        }
+      ]
+    }).compile()
+
+    const disabled = module.get<CacheService>(CacheService)
+    await disabled.onModuleInit()
+
+    await expect(disabled.get('courses')).resolves.toBeNull()
+    await expect(disabled.set('courses', { id: 1 })).resolves.toBeUndefined()
+    await expect(disabled.invalidateCatalog()).resolves.toBeUndefined()
+    await expect(disabled.getSyncRun()).resolves.toBeNull()
+    expect(disabled.key('courses')).toBe('catalog:v0:courses')
+    await expect(disabled.onModuleDestroy()).resolves.toBeUndefined()
   })
 })

@@ -1,6 +1,13 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import Redis from 'ioredis'
+import Redis, { RedisOptions } from 'ioredis'
+
+const REDIS_OPTIONS: RedisOptions = {
+  connectTimeout: 1000,
+  enableOfflineQueue: false,
+  maxRetriesPerRequest: 0,
+  retryStrategy: () => null
+}
 
 export interface SyncRun {
   status: 'running' | 'success' | 'failed'
@@ -15,16 +22,29 @@ export interface SyncRun {
 @Injectable()
 export class CacheService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(CacheService.name)
-  private readonly client: Redis
+  private client?: Redis
   private readonly versionKey = 'catalog:version'
   private currentVersion = 0
 
   constructor(config: ConfigService) {
-    const url = config.getOrThrow<string>('REDIS_URL')
-    this.client = new Redis(url, { maxRetriesPerRequest: 3 })
+    const url = config.get<string>('REDIS_URL')
+    if (!url) {
+      this.logger.warn('REDIS_URL missing: cache disabled')
+      return
+    }
+
+    this.client = new Redis(url, REDIS_OPTIONS)
+    this.client.on('error', (error) => {
+      this.logger.warn(error, 'Redis connection error — cache degraded')
+    })
   }
 
   async onModuleInit(): Promise<void> {
+    if (!this.client) {
+      this.currentVersion = 0
+      return
+    }
+
     try {
       const version = await this.client.get(this.versionKey)
       this.currentVersion = version ? Number.parseInt(version, 10) : 0
@@ -35,10 +55,17 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy(): Promise<void> {
-    await this.client.quit()
+    if (!this.client) return
+    try {
+      await this.client.quit()
+    } catch (error) {
+      this.logger.warn(error, 'Redis quit failed during shutdown')
+    }
   }
 
   async get<T>(key: string): Promise<T | null> {
+    if (!this.client) return null
+
     try {
       const value = await this.client.get(this.key(key))
       if (value === null || value === '') {
@@ -58,6 +85,8 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
   }
 
   async set<T>(key: string, value: T, ttlSeconds = 3600): Promise<void> {
+    if (!this.client) return
+
     try {
       const serialized = JSON.stringify(value)
       await this.client.setex(this.key(key), ttlSeconds, serialized)
@@ -67,6 +96,8 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
   }
 
   async del(pattern: string): Promise<void> {
+    if (!this.client) return
+
     try {
       await this.deleteByPattern(this.key(pattern))
     } catch (error) {
@@ -75,14 +106,22 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
   }
 
   async invalidateCatalog(): Promise<void> {
-    const newVersion = await this.client.incr(this.versionKey)
-    const oldVersion = newVersion - 1
-    this.currentVersion = newVersion
-    await this.deleteByPattern(`catalog:v${oldVersion}:*`)
-    this.logger.log(`Catalog cache invalidated, new version v${this.currentVersion}`)
+    if (!this.client) return
+
+    try {
+      const newVersion = await this.client.incr(this.versionKey)
+      const oldVersion = newVersion - 1
+      this.currentVersion = newVersion
+      await this.deleteByPattern(`catalog:v${oldVersion}:*`)
+      this.logger.log(`Catalog cache invalidated, new version v${this.currentVersion}`)
+    } catch (error) {
+      this.logger.warn(error, 'Failed to invalidate catalog cache')
+    }
   }
 
   async setSyncRun(run: SyncRun): Promise<void> {
+    if (!this.client) return
+
     try {
       await this.client.setex('sync:last_run', 86_400, JSON.stringify(run))
     } catch (error) {
@@ -91,6 +130,8 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
   }
 
   async getSyncRun(): Promise<SyncRun | null> {
+    if (!this.client) return null
+
     try {
       const value = await this.client.get('sync:last_run')
       if (!value) return null
@@ -106,13 +147,15 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async deleteByPattern(pattern: string): Promise<void> {
+    if (!this.client) return
+
     const stream = this.client.scanStream({ match: pattern, count: 100 })
     const pending: Promise<unknown>[] = []
 
     await new Promise<void>((resolve, reject) => {
       stream.on('data', (batch: string[]) => {
         if (batch.length === 0) return
-        const pipeline = this.client.pipeline()
+        const pipeline = this.client!.pipeline()
         for (const key of batch) {
           pipeline.del(key)
         }
